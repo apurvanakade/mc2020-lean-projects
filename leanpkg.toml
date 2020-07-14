@@ -1,0 +1,8 @@
+[package]
+name = "mc2020-projects"
+version = "0.1"
+lean_version = "leanprover-community/lean:3.17.1"
+path = "src"
+
+[dependencies]
+mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "6c1ae3b173c83c425f96c2b211a9b69868e19d55"}
