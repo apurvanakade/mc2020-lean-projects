@@ -1,0 +1,3 @@
+-- prove that semimodules form a monoid under direct sum
+-- prove that finite dimensional vector spaces form a monoid under direct sum 
+-- prove that dimension is a monoid homomorphism 
