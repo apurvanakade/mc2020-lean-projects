@@ -10,11 +10,17 @@ Direct sum of modules over commutative rings, indexed by a discrete type ι.
 import algebra.direct_sum
 import linear_algebra.basic
 
+/-
+# Direct sum of modules over commutative rings, indexed by a discrete type ι.
+
+Add a description of the file here.
+-/
+
 universes u v w u₁
 
 variables (R : Type u) [semiring R]
 variables (ι : Type v) [decidable_eq ι] (M : ι → Type w)
-variables [Π i, add_comm_group (M i)] [Π i, semimodule R (M i)]
+variables [Π i : ι, add_comm_group (M i)] [Π i : ι, semimodule R (M i)]
 include R
 
 namespace direct_sum
