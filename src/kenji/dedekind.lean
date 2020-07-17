@@ -5,52 +5,50 @@ import ring_theory.fractional_ideal
 universe u
 universe v
 
-variables (R : Type u) {A : Type v}
-variables [comm_ring R] [comm_ring A]
+variables (R : Type u) [comm_ring R] {A : Type v} [comm_ring A]
 variables [algebra R A]
-
 open function
 open_locale big_operators
 
 structure is_integrally_closed_in : Prop :=
 (inj : injective (algebra_map R A))
 (closed : ∀ (a : A), is_integral R a → ∃ r : R, algebra_map R A r = a)
-
 def is_integrally_closed_domain : Prop := ∀ {r s : R}, s ≠ 0 → (∃ (n : ℕ) (f : ℕ → R) (hf : f 0 = 1),
     ∑ ij in finset.nat.antidiagonal n, f ij.1 * r ^ ij.2 * s ^ ij.1 = 0) → s ∣ r
-
-structure Dedekind_domain_id [integral_domain R] : Prop := 
+/-
+Def 1: integral domain, noetherian, integrally closed, nonzero prime ideals are maximal
+-/
+structure dedekind_domain_id [integral_domain R] : Prop := 
     (noetherian : is_noetherian_ring R)
     (int_closed : is_integrally_closed_domain R)
-    (max_prime_ideals : ∀ I : ideal R, (∃ t : I, t ≠ 0) → I.is_prime → I.is_maximal)
-#check Dedekind_domain_id
-
-variables [integral_domain R]
-variables S : Dedekind_domain_id R
-#check S
+    (max_nonzero_primes : ∀ P : ideal R, P ≠ ⊥  → P.is_prime → P.is_maximal)
 /-
-A dedekind domain is a noetherian ring such that
-the localization at each of the maximal prime ideals
-(read non-zero prime ideals) is a DVR.
+Def 2: noetherian ring,
+localization at each nonzero prime ideals is a DVR.
 
 Something is a discrete valuation ring if
-it is an integral domain and is a PIR.
+it is an integral domain and is a PIR and has one non-zero maximal ideal.
 -/
+class discrete_valuation_ring [comm_ring R] : Prop :=
+    (int_domain : is_integral_domain(R))
+    (is_pir : is_principal_ideal_ring(R))
+    (unique_nonzero_prime : ∃ Q : ideal R,
+    Q ≠ ⊥ → Q.is_prime →  (∀ P : ideal R, P.is_prime → P = ⊥ ∨ P = Q)
+    )
 
-class Dedekind_domain_dvr [comm_ring R] : Prop :=
+class dedekind_domain_dvr [comm_ring R] : Prop :=
     (noetherian : is_noetherian_ring R)
-    (local_pir : ∀ P : ideal R, P.is_prime) --this is wrong, needs to include a statement about the localization
-
+    (local_dvr_nonzero_prime : ∀ P : ideal R,
+    P ≠ ⊥ → P.is_prime → discrete_valuation_ring(localization.at_prime(P)))
 /-
-A dedekind domain is a ring such that every
-nonzero fractional zero is invertible.
+Def 3: every nonzero fractional zero is invertible.
 
 Fractional ideal: I = {r | rI ⊆ R}
 It is invertible if there exists a fractional ideal J
 such that IJ=R.
 -/
-class Dedekind_domain_inv [comm_ring R] : Prop :=
-    --(inv_ideals : ∀ I : ) --??? fractional ideals seem annoying.
-    (yes : tt)
-#print has_div
---instance Dedekind_domain_id_imp_Dedekind_domain_dvr (X : type) [Dedekind_domain_id X] : Dedekind_domain_dvr X
+variables {K : Type u} [field K] {R' : Type u} [integral_domain R']
+class dedekind_domain_inv [integral_domain R'] [field K] {f : localization_map(non_zero_divisors R')(K)}: Prop :=
+    (inv_ideals : ∀ I : ring.fractional_ideal f,
+    (∃ t : I, t ≠ 0) →  (∃ J : ring.fractional_ideal f, I*J = 1))
+--instance Dedekind_domain_id_imp_Dedekind_domain_dvr (X : type) [Dedekind_domain_id X] : Dedekind_domain_dvr
