@@ -2,7 +2,8 @@
 
 import data.equiv.basic
 import logic.relation
-import category_theory.category -- This is only for the sake of the `obviously` tactic, which should be moved.
+import data.fintype.basic
+import data.set.finite
 
 /-!
 # Definitions of graphs
@@ -33,8 +34,9 @@ structure graph (V : Type u) extends multigraph.{0} V :=
 notation x `~[`G`]` y := G.edge x y
 
 namespace graph
-variables {V : Type u} {V₁ : Type u₁} {V₂ : Type u₂} {V₃ : Type u₃} {V₄ : Type u₄}
-variables (G : graph V) (G₁ : graph V₁) (G₂ : graph V₂) (G₃ : graph V₃) (G₄ : graph V₄)
+variables {V : Type u}
+variables (G : graph V)
+variables [fintype V]
 
 def vertices (G : graph V) := V
 
@@ -49,6 +51,17 @@ def is_connected (G : graph V) : Prop :=
 def is_loopless (G : graph V) : Prop :=
 ∀ ⦃x⦄, ¬ (x ~[G] x)
 
+def neighbours (G : graph V) (v: V) : set V :=
+begin
+  have nbrs := {w : V | G.edge v w}, 
+  exact nbrs,
+end
+
+def degree (G: graph V) (v: V) : ℕ :=
+begin
+  have nbrs := neighbours G v,
+  have x := set.finite.fintype V nbrs,
+end
 lemma ne_of_edge {G : graph V} (h : G.is_loopless) {x y : V} (e : x ~[G] y) :
   x ≠ y :=
 by { rintro rfl, exact h e }
@@ -102,17 +115,6 @@ variables (H : multigraph.{v} V)
 def is_Eulerian : Prop :=
 ∃ {x : V} (p : tour H.to_directed_multigraph x), is_Eulerian p
 
-/--
-I thought about defining an inductive type
-```
-inductive Konigsberg
-| Kneiphof
-| Aldstadt
-| Vorstadt
-| Lomse
-```
-but it was too horrible to contemplate.
--/
 def KonigsbergBridges : multigraph (fin 4) :=
 multigraph_of_edges [(0,1), (0,2), (0,3), (1,2), (1,2), (2,3), (2,3)]
 
