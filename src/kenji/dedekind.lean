@@ -48,8 +48,10 @@ Def 3: every nonzero fractional ideal is invertible.
 Fractional ideal: I = {r | rI ⊆ R}
 It is invertible if there exists a fractional ideal J
 such that IJ=R.
+
+Might have to scrap this definition, not able to instatiate something of this type.
 -/
-class dedekind_inv [integral_domain R'] [comm_ring K] {f : localization_map(non_zero_divisors R')(K)}: Prop :=
+class dedekind_inv [integral_domain R'] [comm_ring K] [f : localization_map(non_zero_divisors R')(K)]: Prop :=
     (inv_ideals : ∀ I : ring.fractional_ideal f,
     (∃ t : I, t ≠ 0) →  (∃ J : ring.fractional_ideal f, I*J = 1))
 
@@ -86,13 +88,3 @@ begin
   sorry,
 end
 -/
-#check localization_map.at_prime
-namespace testing
-universe w
-variables (S: Type w) [integral_domain S] (Q : ideal S) (hq : Q.is_prime) (hq_nonzero : Q ≠ ⊥ ) (L : Type w) [comm_ring L]
-variables f : localization_map.at_prime(L)(Q)
-
-#check f.to_map(-10)
-
-
-end testing
