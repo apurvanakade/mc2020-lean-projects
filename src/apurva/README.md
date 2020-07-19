@@ -31,6 +31,18 @@ Also, need the following definitions: Minor of a matrix, Normal matrices, Unitar
 And optionally should define symmetric, Skew Symmetric, Orthogonal, Hermitian, Skew Hermitian matrices.
 
 
+## July 19, 2020
+It might be difficult to construct an eigenbasis. Here's a more direct approach. 
+Let `A` be a normal matrix. 
+* Prove that `A` has at least one eigenvalue and eigenvector, `k` and `v`.
+* Show that `v` can be extended to a unitary matrix `U`.
+* Show that `A = U B U^*` where `B` is a matrix with `B_{00} = k`, `B_{ij} = 0` if `i = 0, j > 0` or `i > 0, j = 0`. 
+  Let `B'` be the `(n-1) \times (n-1)` minor of `B`.
+* By induction, `B' = V D V^*` where `V` is unitary and `D` is diagonal. 
+* Rest of the proof is algebraic manipulations.
+
+
+
 ## References 
 
 * https://leanprover-community.github.io/mathlib_docs/linear_algebra/nonsingular_inverse.html
