@@ -103,6 +103,11 @@ abbreviation path (H : multigraph.{v} V) := directed_multigraph.path H.to_direct
 
 end multigraph
 
+namespace graph
+
+abbreviation path (H : graph V) := multigraph.path H.to_multigraph
+
+
 open directed_multigraph
 
 namespace path
@@ -120,7 +125,7 @@ inductive is_trail : Π {x y} (p : H.path x y), Prop
 
 def is_Eulerian {x y} (p : H.path x y) : Prop :=
 is_trail p ∧ ∀ {x' y'} (e : H.edge x' y'), mem e p
-
+#check is_Eulerian
 end path
 
 open path
@@ -130,8 +135,4 @@ variables (H : multigraph.{v} V)
 def is_Eulerian : Prop :=
 ∃ {x : V} (p : tour H.to_directed_multigraph x), is_Eulerian p
 
-def KonigsbergBridges : multigraph (fin 4) :=
-multigraph_of_edges [(0,1), (0,2), (0,3), (1,2), (1,2), (2,3), (2,3)]
-
-def KonigsbergBridgesProblem : Prop :=
-¬ is_Eulerian KonigsbergBridges
+end graph
