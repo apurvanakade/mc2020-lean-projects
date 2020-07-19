@@ -60,7 +60,7 @@ begin
   exact nbrs,
 end
 
-def out_degree (G: graph V) (v: V) : ℕ :=
+def out_degree (G: graph V) (v : V) : ℕ :=
 begin
   have nbrs := neighbours G v,
   have x : nbrs.finite,
@@ -69,7 +69,7 @@ begin
   exact fin_nbrs.card,
 end
 
-def in_degree (G: graph V) (v: V) : ℕ :=
+def in_degree (G: graph V) (v : V) : ℕ :=
 begin
   have out_nbrs := {w : V | G.edge w v},
   have x : out_nbrs.finite,
@@ -83,6 +83,7 @@ by { rintro rfl, exact h e }
 end graph
 
 variables {V : Type u} (G : directed_multigraph.{v} V)
+variables [fintype V]
 
 namespace directed_multigraph
 
@@ -125,6 +126,8 @@ end path
 
 open path
 
+open graph
+
 variables (H : multigraph.{v} V)
 
 def is_Eulerian : Prop :=
@@ -135,3 +138,17 @@ multigraph_of_edges [(0,1), (0,2), (0,3), (1,2), (1,2), (2,3), (2,3)]
 
 def KonigsbergBridgesProblem : Prop :=
 ¬ is_Eulerian KonigsbergBridges
+
+theorem in_degree_out_degree_equal_tour (G: graph V) (x : V) (t : tour G.to_directed_multigraph x) 
+: (is_Eulerian t) → (∀ y : V, G.out_degree y = G.in_degree y) :=
+begin
+  sorry,
+end
+
+theorem KonigsbergNotEulerian : ¬ is_Eulerian KonigsbergBridges :=
+begin
+  by_contradiction,
+  cases a with V ex_path,
+  cases ex_path with t d,
+  sorry, 
+end
