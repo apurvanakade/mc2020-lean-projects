@@ -6,6 +6,6 @@ Outline of the proof for Konigsberg is not an Eulerian Tour
 
 Prove that a tour implies indegree = outdegree for each vertex
 
-Prove that degree = indegree + outdegree
+Prove that 2x = odd is impossible
 
 Prove that there are vertices with odd degree in the Konigsberg graph
