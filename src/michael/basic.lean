@@ -4,6 +4,9 @@ import data.equiv.basic
 import logic.relation
 import data.fintype.basic
 import data.set.finite
+import tactic
+
+noncomputable theory
 
 /-!
 # Definitions of graphs
@@ -60,8 +63,12 @@ end
 def degree (G: graph V) (v: V) : ℕ :=
 begin
   have nbrs := neighbours G v,
-  have x := set.finite.fintype V nbrs,
+  have x : nbrs.finite,
+  exact set.finite.of_fintype(nbrs),
+  have fin_nbrs := set.finite.to_finset x,
+  exact fin_nbrs.card,
 end
+
 lemma ne_of_edge {G : graph V} (h : G.is_loopless) {x y : V} (e : x ~[G] y) :
   x ≠ y :=
 by { rintro rfl, exact h e }
