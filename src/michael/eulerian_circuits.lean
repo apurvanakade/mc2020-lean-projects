@@ -16,9 +16,26 @@ def KonigsbergBridgesProblem : Prop :=
 
 namespace graph
 include G
-def degree (v : V) : ℕ := sorry
+def degree (v : V) : ℕ := 
+begin
+  have nbrs := neighbours G v,
+  have x : nbrs.finite,
+  exact set.finite.of_fintype(nbrs),
+  have fin_nbrs := set.finite.to_finset x,
+  exact fin_nbrs.card,
+end
+-- degree for undirected graphs
+
+def crossed (v x y : V) : ℕ :=
+begin
+  have p := G.path x y,
+  have in_edge := {w : V | G.edge w v ∧ mem (G.edge w v) p}
+end
+-- number of times v is in an edge in path x y
 
 def has_eulerian_path : Prop := ∃ x y : V, ∃ p : G.path x y, p.is_Eulerian
+
+-- lemma tours_degree_distinct (x, y : V) : (x ≠ y) → (∀ z : V, z ≠ x ∧ z ≠ y → )
 
 
 lemma has_eulerian_path_iff : 
