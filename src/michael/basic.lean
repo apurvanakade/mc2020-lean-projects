@@ -148,7 +148,7 @@ end
 theorem KonigsbergNotEulerian : ¬ is_Eulerian KonigsbergBridges :=
 begin
   by_contradiction,
-  cases a with V ex_path,
-  cases ex_path with t d,
+  cases a with x ex_path,
+  
   sorry, 
 end
