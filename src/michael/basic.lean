@@ -60,13 +60,21 @@ begin
   exact nbrs,
 end
 
-def degree (G: graph V) (v: V) : ℕ :=
+def out_degree (G: graph V) (v: V) : ℕ :=
 begin
   have nbrs := neighbours G v,
   have x : nbrs.finite,
   exact set.finite.of_fintype(nbrs),
   have fin_nbrs := set.finite.to_finset x,
   exact fin_nbrs.card,
+end
+
+def in_degree (G: graph V) (v: V) : ℕ :=
+begin
+  have out_nbrs := {w : V | G.edge w v},
+  have x : out_nbrs.finite,
+  exact set.finite.of_fintype(out_nbrs),
+  exact (set.finite.to_finset x).card,
 end
 
 lemma ne_of_edge {G : graph V} (h : G.is_loopless) {x y : V} (e : x ~[G] y) :
