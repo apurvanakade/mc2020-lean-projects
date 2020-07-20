@@ -43,6 +43,13 @@ def has_eulerian_path : Prop := ∃ x y : V, ∃ p : G.path x y, G.is_Eulerian p
 
 -- lemma tours_degree_distinct (x, y : V) : (x ≠ y) → (∀ z : V, z ≠ x ∧ z ≠ y → )
 
+lemma path_crossed {x y : V} (p : G.path x y) (z : V) : (x = y) → nat.even (G.crossed z p) ∧ 
+(x ≠ y) → ¬ nat.even (G.crossed x p) → ¬ nat.even (G.crossed y p) 
+→ (z ≠ x ∧ z ≠ y → nat.even (G.crossed z p)) :=
+begin
+  sorry,
+end
+-- if x=y, all vertices have crossed = even, else all vertices except x and y have crossed = odd
 
 lemma has_eulerian_path_iff : 
   G.has_eulerian_path ↔ card (filter {v : V | ¬ nat.even (G.degree v)} univ) ∈ ({0, 2} : finset ℕ) :=
