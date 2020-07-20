@@ -57,6 +57,24 @@ by split; apply G.sym
 lemma ne_of_edge {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { intro h, rw h at hab, apply G.loopless b, exact hab }
 
+inductive path : V → V → Type u
+| nil  : Π (h : V), path h h
+| cons : Π {h s t : V} (e : G.adj h s) (l : path s t), path h t
+
+notation a :: b := path.cons a b
+
+inductive mem : Π {w x y z : V} (e : G.adj x y) (p : G.path w z), Prop
+| head : ∀ {x y z} (e : G.adj x y) (p : G.path y z), mem e (e :: p)
+| head_symm : ∀ {x y z} (e : G.adj x y) (p : G.path y z), mem (G.sym e) (e :: p)
+| tail : ∀ {v w x y z} (e : G.adj v w) (e' : G.adj x y) (p : G.path w z) (m : mem e' p), mem e' (e :: p)
+
+inductive is_trail : Π {x y} (p : G.path x y), Prop
+| nil : ∀ (x), is_trail (path.nil x)
+| cons : ∀ {x y z} (e : G.adj x y) (p : G.path y z) (h : ¬ G.mem e p), is_trail (e :: p)
+
+def is_Eulerian {x y} (p : G.path x y) : Prop :=
+G.is_trail p ∧ ∀ {x' y'} (e : G.adj x' y'), G.mem e p
+
 section finite
 
 variable [fintype V]
@@ -75,24 +93,6 @@ def degree (v : V) : ℕ := (neighbors G v).card
 /-- In a regular graph, every vertex has the same degree. -/
 def regular_graph (d : ℕ) : Prop :=
  ∀ v : V, degree G v = d
-
-inductive path : V → V → Type u
-| nil  : Π (h : V), path h h
-| cons : Π {h s t : V} (e : G.adj h s) (l : path s t), path h t
-
-notation a :: b := path.cons a b
-
-inductive mem : Π {w x y z : V} (e : G.adj x y) (p : G.path w z), Prop
-| head : ∀ {x y z} (e : G.adj x y) (p : G.path y z), mem e (e :: p)
-| head_symm : ∀ {x y z} (e : G.adj x y) (p : G.path y z), mem (G.sym e) (e :: p)
-| tail : ∀ {v w x y z} (e : G.adj v w) (e' : G.adj x y) (p : G.path w z) (m : mem e' p), mem e' (e :: p)
-
-inductive is_trail : Π {x y} (p : G.path x y), Prop
-| nil : ∀ (x), is_trail (path.nil x)
-| cons : ∀ {x y z} (e : G.adj x y) (p : G.path y z) (h : ¬ G.mem e p), is_trail (e :: p)
-
-def is_Eulerian {x y} (p : G.path x y) : Prop :=
-G.is_trail p ∧ ∀ {x' y'} (e : G.adj x' y'), G.mem e p
 
 end finite
 end simple_graph
