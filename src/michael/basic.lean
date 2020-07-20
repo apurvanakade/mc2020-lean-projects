@@ -104,6 +104,12 @@ abbreviation path (H : multigraph.{v} V) := directed_multigraph.path H.to_direct
 
 end multigraph
 
+namespace graph
+
+abbreviation path (H : graph V) := multigraph.path H.to_multigraph
+
+end graph
+
 open directed_multigraph
 
 namespace path

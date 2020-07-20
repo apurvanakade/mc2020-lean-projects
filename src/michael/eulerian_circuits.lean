@@ -6,7 +6,7 @@ noncomputable theory
 
 universes u
 variables {V : Type u} [fintype V] (G : graph V)
-open graph graph.path finset
+open graph finset
 
 def KonigsbergBridges : multigraph (fin 4) :=
 multigraph_of_edges [(0,1), (0,2), (0,3), (1,2), (1,2), (2,3), (2,3)]
@@ -26,14 +26,13 @@ begin
 end
 -- degree for undirected graphs
 
-def crossed (v x y : V) : ℕ :=
+def crossed (v : V) {x y : V} (p : G.path x y) : ℕ :=
 begin
-  have p := G.path x y,
   have in_edge := {w : V | G.edge w v ∧ mem (G.edge w v) p}
 end
 -- number of times v is in an edge in path x y
 
-def has_eulerian_path : Prop := ∃ x y : V, ∃ p : G.path x y, p.is_Eulerian
+def has_eulerian_path : Prop := ∃ x y : V, ∃ p : G.path x y, is_Eulerian p
 
 -- lemma tours_degree_distinct (x, y : V) : (x ≠ y) → (∀ z : V, z ≠ x ∧ z ≠ y → )
 
