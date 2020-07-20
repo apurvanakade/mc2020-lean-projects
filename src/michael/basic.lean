@@ -135,26 +135,3 @@ open path
 open graph
 
 variables (H : multigraph.{v} V)
-
-def is_Eulerian : Prop :=
-∃ {x : V} (p : tour H.to_directed_multigraph x), is_Eulerian p
-
-def KonigsbergBridges : multigraph (fin 4) :=
-multigraph_of_edges [(0,1), (0,2), (0,3), (1,2), (1,2), (2,3), (2,3)]
-
-def KonigsbergBridgesProblem : Prop :=
-¬ is_Eulerian KonigsbergBridges
-
-theorem in_degree_out_degree_equal_tour (G: graph V) (x : V) (t : tour G.to_directed_multigraph x) 
-: (is_Eulerian t) → (∀ y : V, G.out_degree y = G.in_degree y) :=
-begin
-  sorry,
-end
-
-theorem KonigsbergNotEulerian : ¬ is_Eulerian KonigsbergBridges :=
-begin
-  by_contradiction,
-  cases a with x ex_path,
-  
-  sorry, 
-end
