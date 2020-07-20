@@ -23,6 +23,12 @@ A ring such that any of its fractional ideals is invertible.
 (1) How does one deal with subsets? For $P \subset PR_P \cap R$, this expression seems to have a lot of coercions.
 (2) Seems straightforward.
 
+<!---
+jstark to kenji:
+
+Are you talking about intersection and inclusion as submodules or subsets? i think mathlib already has the lattive structure for submodules.
+-->
+
 **Lemma 2** (0) For ideals of $R_p$, $J = (J \cap R) R_p$.
 *Proof:*
 (1) For any $xy^{-1} \in J$, then $x \in J \cap R$, and since $y^{-1} \in R_p$, $xy^{-1} \in (J \cap R) R_p \implies J \subset (J \cap R) R_p$.

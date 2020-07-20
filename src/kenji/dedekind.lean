@@ -15,6 +15,8 @@ structure is_integrally_closed_in : Prop :=
 (inj : injective (algebra_map R A))
 (closed : ∀ (a : A), is_integral R a → ∃ r : R, algebra_map R A r = a)
 
+-- CR jstark for kenji : It may be easier to prove things if you define this via evaluation of polynomials.
+-- See e.g. data/polynomial/algebra_map.lean for an idea of what's available
 def is_integrally_closed_domain : Prop := ∀ {r s : R}, s ≠ 0 → (∃ (n : ℕ) (f : ℕ → R) (hf : f 0 = 1),
     ∑ ij in finset.nat.antidiagonal n, f ij.1 * r ^ ij.2 * s ^ ij.1 = 0) → s ∣ r
 /-
