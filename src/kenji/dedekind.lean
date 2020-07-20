@@ -15,8 +15,6 @@ structure is_integrally_closed_in : Prop :=
 (inj : injective (algebra_map R A))
 (closed : ∀ (a : A), is_integral R a → ∃ r : R, algebra_map R A r = a)
 
--- CR jstark for kenji : It may be easier to prove things if you define this via evaluation of polynomials.
--- See e.g. data/polynomial/algebra_map.lean for an idea of what's available
 def is_integrally_closed_domain : Prop := ∀ {r s : R}, s ≠ 0 → (∃ (n : ℕ) (f : ℕ → R) (hf : f 0 = 1),
     ∑ ij in finset.nat.antidiagonal n, f ij.1 * r ^ ij.2 * s ^ ij.1 = 0) → s ∣ r
 /-
@@ -53,9 +51,7 @@ such that IJ=R.
 
 Might have to scrap this definition, not able to instatiate something of this type.
 -/
--- this instance seems fishy to me [f : localization_map(non_zero_divisors R')(K)] 
--- Isn't there one localization_map per submonoid? I don't think we want there to be a canonical one
-class dedekind_inv [integral_domain R'] [comm_ring K] [f : localization_map(non_zero_divisors R')(K)]: Prop :=
+class dedekind_inv [integral_domain R'] [comm_ring K] {f : localization_map(non_zero_divisors R')(K)}: Prop :=
     (inv_ideals : ∀ I : ring.fractional_ideal f,
     (∃ t : I, t ≠ 0) →  (∃ J : ring.fractional_ideal f, I*J = 1))
 
@@ -66,13 +62,20 @@ begin
   {exact dedekind_id.noetherian,},
   {intros P hp_nonzero hp_prime,
     split,
-    {--localizations of integral domains gives an integral domain
+    {--localizations of integral domains gives an integral domain. This should just follow from nonzero ring hom.
       letI := hp_prime,
-      let f := localization_map.at_prime K P,
+      let f := localization_map.at_prime(K)(P), 
+      split,
+      {exact exists_pair_ne (localization.at_prime P),},
+      {exact mul_comm,},
+      intros x y mul_eq_zero,
+      have h1 : ∃ x1 : R' ,∃  x2 : P.prime_compl, f(x1)(x2) = x,
+      --x *y = 0 → x= 0 ∨ y = 0
       sorry,
     },
     { --is_pir
-      
+      split,
+      intro S,
       sorry,
     },
     {--unique ideal
