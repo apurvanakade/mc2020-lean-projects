@@ -43,6 +43,9 @@ end
 def has_eulerian_path : Prop := ∃ x y : V, ∃ p : G.path x y, G.is_Eulerian p
 
 lemma no_edge_in_nil {d x y : V} (h : G.adj x y) : ¬ G.mem h (path.nil d) :=
+begin
+  sorry,
+end
 
 -- no edges contained in the nil path
 
@@ -56,7 +59,13 @@ begin
   have cross_zero : G.crossed z (path.nil d) = 0,
   unfold crossed,
   rw finset.card_eq_zero,
-  
+  sorry,
+  rw cross_zero,
+  norm_num,
+  intro neq_self,
+  exfalso,
+  apply neq_self, refl,
+  sorry,
 end
 -- if x=y, all vertices have crossed = even, else all vertices except x and y have crossed = odd
 
