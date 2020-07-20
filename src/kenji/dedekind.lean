@@ -53,6 +53,8 @@ such that IJ=R.
 
 Might have to scrap this definition, not able to instatiate something of this type.
 -/
+-- this instance seems fishy to me [f : localization_map(non_zero_divisors R')(K)] 
+-- Isn't there one localization_map per submonoid? I don't think we want there to be a canonical one
 class dedekind_inv [integral_domain R'] [comm_ring K] [f : localization_map(non_zero_divisors R')(K)]: Prop :=
     (inv_ideals : ∀ I : ring.fractional_ideal f,
     (∃ t : I, t ≠ 0) →  (∃ J : ring.fractional_ideal f, I*J = 1))
@@ -65,7 +67,8 @@ begin
   {intros P hp_nonzero hp_prime,
     split,
     {--localizations of integral domains gives an integral domain
-      --let f := localization_map.at_prime(K)(P)(hp_prime),
+      letI := hp_prime,
+      let f := localization_map.at_prime K P,
       sorry,
     },
     { --is_pir
