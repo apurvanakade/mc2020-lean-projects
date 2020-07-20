@@ -44,7 +44,8 @@ def has_eulerian_path : Prop := ∃ x y : V, ∃ p : G.path x y, G.is_Eulerian p
 
 lemma no_edge_in_nil {d x y : V} (h : G.adj x y) : ¬ G.mem h (path.nil d) :=
 begin
-  sorry,
+  by_contradiction,
+  cases a,
 end
 
 -- no edges contained in the nil path
