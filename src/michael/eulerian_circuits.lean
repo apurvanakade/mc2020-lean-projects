@@ -4,6 +4,7 @@ import data.finset
 import .simple_graph
 
 noncomputable theory
+open_locale classical
 
 universes u
 variables {V : Type u} [fintype V] (G : simple_graph V)
@@ -33,7 +34,8 @@ namespace simple_graph
 
 def crossed (v : V) {x y : V} (p : G.path x y) : ℕ :=
 begin
-  have in_edge := {w : V | G.adj w v ∧ G.mem (G.adj w v) p}
+  have in_edge := finset.filter {w : V | if h : G.adj w v then G.mem h p else false } univ,
+  exact finset.card in_edge,
 end
 -- number of times v is in an edge in path x y
 
