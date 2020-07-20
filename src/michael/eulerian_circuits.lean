@@ -2,6 +2,7 @@ import .basic
 import data.nat.parity
 import data.finset
 import .simple_graph
+import tactic
 
 noncomputable theory
 open_locale classical
@@ -41,35 +42,32 @@ end
 
 def has_eulerian_path : Prop := ∃ x y : V, ∃ p : G.path x y, G.is_Eulerian p
 
--- lemma tours_degree_distinct (x, y : V) : (x ≠ y) → (∀ z : V, z ≠ x ∧ z ≠ y → )
-
--- lemma path_crossed_loop {x : V} (p : G.path x) (z : V) : nat.even (G.crossed z p) :=
--- begin
---   induction p with d hd, --simp,
---   suffices cross_zero : G.crossed z (path.nil d) = 0,
---   split,
---   intro eq_self,
---   have cross_zero : G.crossed z (path.nil d) = 0,
---   unfold crossed,
---   rw finset.card_eq_zero,
---   convert finset.filter_false _,
---   ext, simp, split_ifs,
---   sorry
--- end
-
-lemma path_crossed {x y : V} (p : G.path x y) (z : V) : ((x = y) → nat.even (G.crossed z p)) ∧
-((x ≠ y) → ¬ nat.even (G.crossed x p) → ¬ nat.even (G.crossed y p)
-→ (z ≠ x ∧ z ≠ y → nat.even (G.crossed z p))) :=
+lemma no_edge_in_nil {d x y : V} (h : G.adj x y) : ¬ G.mem h (path.nil d) :=
 begin
-  induction p with d hd, --simp,
-  suffices : G.crossed z (path.nil d) = 0, simp [this],
-  unfold crossed,
-  rw finset.card_eq_zero,
-  convert finset.filter_false _,
-  ext, simp, split_ifs, 
-  { intro h', cases h' }, trivial, apply_instance,
-  sorry
+  by_contradiction,
+  cases a,
 end
+
+-- no edges contained in the nil path
+
+lemma path_crossed {x y : V} (p : G.path x y) (z : V) : 
+nat.even (G.crossed z p) ↔ (x = y) ∨ (z ≠ x ∧ z ≠ y)
+:=
+begin
+  -- induction p with d hd using h,
+  induction p with d hd,
+  -- base case
+  { suffices : G.crossed z (path.nil d) = 0, simp [this],
+    erw finset.card_eq_zero,
+    convert finset.filter_false _,
+    ext, simp, split_ifs,
+    { exact no_edge_in_nil G h },
+    { exact not_false },
+    { apply_instance }},
+  -- induction step
+  sorry,
+end
+-- if x=y, all vertices have crossed = even, else all vertices except x and y have crossed = odd
 
 lemma has_eulerian_path_iff : 
   G.has_eulerian_path ↔ card (filter {v : V | ¬ nat.even (G.degree v)} univ) ∈ ({0, 2} : finset ℕ) :=
