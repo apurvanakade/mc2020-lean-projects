@@ -2,6 +2,7 @@ import .basic
 import data.nat.parity
 import data.finset
 import .simple_graph
+import tactic
 
 noncomputable theory
 open_locale classical
@@ -41,13 +42,21 @@ end
 
 def has_eulerian_path : Prop := ∃ x y : V, ∃ p : G.path x y, G.is_Eulerian p
 
--- lemma tours_degree_distinct (x, y : V) : (x ≠ y) → (∀ z : V, z ≠ x ∧ z ≠ y → )
+lemma no_edge_in_nil {d x y : V} (h : G.adj x y) : ¬ G.mem h (path.nil d) :=
 
-lemma path_crossed {x y : V} (p : G.path x y) (z : V) : (x = y) → nat.even (G.crossed z p) ∧ 
-(x ≠ y) → ¬ nat.even (G.crossed x p) → ¬ nat.even (G.crossed y p) 
-→ (z ≠ x ∧ z ≠ y → nat.even (G.crossed z p)) :=
+-- no edges contained in the nil path
+
+lemma path_crossed {x y : V} (p : G.path x y) (z : V) : ((x = y) → nat.even (G.crossed z p)) ∧ 
+((x ≠ y) → ¬ nat.even (G.crossed x p) → ¬ nat.even (G.crossed y p) 
+→ (z ≠ x ∧ z ≠ y → nat.even (G.crossed z p))) :=
 begin
-  sorry,
+  induction p with d hd,
+  split,
+  intro eq_self,
+  have cross_zero : G.crossed z (path.nil d) = 0,
+  unfold crossed,
+  rw finset.card_eq_zero,
+  
 end
 -- if x=y, all vertices have crossed = even, else all vertices except x and y have crossed = odd
 
