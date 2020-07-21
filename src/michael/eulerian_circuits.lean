@@ -51,14 +51,14 @@ end
 -- no edges contained in the nil path
 
 lemma crossed_add_edge {x y z : V} (e : G.adj x y) (p : G.path y z) (w : V) :
-(w = x ∨ w = y) → (G.crossed w p + 1 = G.crossed w (e :: p)) :=
+(w = x ∨ w = y) → ( G.crossed w (e :: p) = G.crossed w p + 1) :=
 begin
   sorry,
 end
 -- adding an edge adds 1 to crossed if the edge contains the vertex
 
 lemma crossed_add_non_edge {x y z : V} (e : G.adj x y) (p : G.path y z) (w : V) :
-(w ≠ x ∧ w ≠ y) → (G.crossed w p = G.crossed w (e :: p)) :=
+(w ≠ x ∧ w ≠ y) → ( G.crossed w (e :: p) = G.crossed w p) :=
 begin
   sorry,
 end
@@ -79,7 +79,7 @@ begin
     { apply_instance }},
   -- induction step
   cases p_ih with even_to_eq eq_to_even,
-  have one_cross : G.crossed hd p_l + 1 = G.crossed hd (p_e :: p_l), { apply crossed_add_edge, tauto },
+  have one_cross : G.crossed hd p_l + 1 = G.crossed hd (p_e :: p_l), { symmetry, apply crossed_add_edge, tauto },
   split,
   { intro cross_even,
     by_cases h : p_s = p_t,
@@ -91,7 +91,7 @@ begin
       rw one_cross, rwa fl_even at cross_even },
     { contrapose! fl_even, rw fl_even,
       have one_cross : G.crossed p_t p_l + 1 = G.crossed p_t (p_e :: p_l),
-      { apply crossed_add_edge, right, rw h },
+      { symmetry, apply crossed_add_edge, right, rw h },
       rw ← nat.even_succ, convert cross_even, rw [fl_even, ← one_cross]},
 
     by_cases hd = p_t, { tauto },
@@ -106,6 +106,34 @@ begin
   
 end
 -- if x=y, all vertices have crossed = even, else all vertices except x and y have crossed = odd
+lemma path_crossed' {x y : V} (p : G.path x y) (z : V) : 
+nat.even (G.crossed z p) ↔ (x = y) ∨ (z ≠ x ∧ z ≠ y)
+:=
+begin
+  induction p with d a s t has p hp,
+  { suffices : G.crossed z (path.nil d) = 0, simp [this],
+    erw finset.card_eq_zero,
+    convert finset.filter_false _, swap, { apply_instance },
+    ext, split_ifs,
+    { have := no_edge_in_nil G h, simpa }, tauto },
+  have has' := G.ne_of_edge has,
+  split, 
+  { by_cases hz : z = a ∨ z = s,
+    { rw [crossed_add_edge, nat.even_succ, hp], assumption',
+      -- try { rintro ⟨rfl, h⟩; tauto },
+      cases hz; { rw hz, tauto }},
+    push_neg at hz, 
+    rw [crossed_add_non_edge, hp], assumption',
+    rintro ⟨rfl, h⟩; tauto },
+
+  { by_cases hz : z = a ∨ z = s,
+    { rw [crossed_add_edge, nat.even_succ, hp], assumption',
+      try { rintro ⟨rfl, h⟩, tauto },
+      cases hz; { rw hz at *, tauto }},
+    push_neg at hz, 
+    rw [crossed_add_non_edge, hp], assumption',
+    rintro ⟨rfl, h⟩; tauto },
+end
 
 lemma has_eulerian_path_iff : 
   G.has_eulerian_path ↔ card (filter {v : V | ¬ nat.even (G.degree v)} univ) ∈ ({0, 2} : finset ℕ) :=
