@@ -108,8 +108,8 @@ begin
   rw fl_even at cross_even,
   exact cross_even,
   exact nat.even_succ.mp cross_one_even,
-  by_cases hd = p_t,
-  left, exact h,
+  by_cases h1 : hd = p_t,
+  left, exact h1,
   right,
   split,
   contrapose! cross_even,
@@ -126,8 +126,17 @@ begin
   rw cross_even,
   exact ne_of_edge G p_e,
   rw cross_even,
-  exact h,
-  
+  exact h1,
+  contrapose! cross_even2,
+  exact nat.even_succ.mp cross_even2,
+  contrapose! cross_even,
+  have zero_cross : G.crossed z p_l = G.crossed z (p_e :: p_l),
+  apply crossed_add_non_edge,
+  split,
+  rw cross_even, symmetry, exact h1,
+  rw cross_even, symmetry, exact h,
+  rw ← zero_cross,
+  tauto,
   
 end
 -- if x=y, all vertices have crossed = even, else all vertices except x and y have crossed = odd
