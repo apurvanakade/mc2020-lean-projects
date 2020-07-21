@@ -73,6 +73,7 @@ lemma path_crossed {x y : V} (p : G.path x y) (z : V) :
 nat.even (G.crossed z p) ↔ (x = y) ∨ (z ≠ x ∧ z ≠ y)
 :=
 begin
+  -- induction p with d hd using h,
   induction p with d hd,
   -- base case
   { suffices : G.crossed z (path.nil d) = 0, simp [this],
@@ -83,6 +84,7 @@ begin
     { exact not_false },
     { apply_instance }},
   -- induction step
+  -- implies condition
   cases p_ih with even_to_eq eq_to_even,
   have one_cross : G.crossed hd p_l + 1 = G.crossed hd (p_e :: p_l), { symmetry, apply crossed_add_edge, tauto },
   split,
@@ -99,16 +101,39 @@ begin
       { symmetry, apply crossed_add_edge, right, rw h },
       rw ← nat.even_succ, convert cross_even, rw [fl_even, ← one_cross]},
 
-    by_cases hd = p_t, { tauto },
+    by_cases h1 : hd = p_t, { tauto },
     right, split,
     contrapose! cross_even,
     rw [cross_even, ← one_cross, nat.even_succ, ← cross_even], 
     push_neg, apply eq_to_even,
     right, split, { rw cross_even, exact ne_of_edge G p_e },
     rwa cross_even,
-    sorry },
+    contrapose! cross_even,
+    have zero_cross : G.crossed z p_l = G.crossed z (p_e :: p_l),
+    symmetry, apply crossed_add_non_edge,
+    rw cross_even, split,
+    symmetry, exact h1,
+    symmetry, exact h,
+    rw ← zero_cross,
+    tauto,},
+
+  -- impliedby direction
+  intro eq_cond,
+  by_cases z = hd,
+  rw h, rw ← one_cross,
+  have cross_odd : ¬ (G.crossed hd p_l).even,
+  by_contradiction,
+  rw ← h at a,
+  have eq_cond1 := even_to_eq(a),
+  cases eq_cond, cases eq_cond1,
+  rw ← eq_cond1 at eq_cond,
+  contrapose! eq_cond,
+  exact G.ne_of_edge p_e,
+  cases eq_cond1,
+  rw eq_cond at h, exact eq_cond1_right(h),
+  cases eq_cond, exact eq_cond_left(h),
+  exact nat.even_succ.mpr cross_odd,
   sorry,
-  
 end
 -- if x=y, all vertices have crossed = even, else all vertices except x and y have crossed = odd
 lemma path_crossed' {x y : V} (p : G.path x y) (z : V) : 
