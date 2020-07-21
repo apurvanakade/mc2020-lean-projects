@@ -49,10 +49,13 @@ begin
 end
 
 -- no edges contained in the nil path
-
+#check card_insert_of_not_mem
 lemma crossed_add_edge {x y z : V} (e : G.adj x y) (p : G.path y z) (w : V) :
 (w = x ∨ w = y) → ( G.crossed w (e :: p) = G.crossed w p + 1) :=
 begin
+  intro h, delta crossed, 
+  convert card_insert_of_not_mem _, 
+  swap, { apply_instance }, swap, exact x,
   sorry,
 end
 -- adding an edge adds 1 to crossed if the edge contains the vertex
@@ -60,6 +63,8 @@ end
 lemma crossed_add_non_edge {x y z : V} (e : G.adj x y) (p : G.path y z) (w : V) :
 (w ≠ x ∧ w ≠ y) → ( G.crossed w (e :: p) = G.crossed w p) :=
 begin
+  intro h, delta crossed, congr, ext a, 
+  split_ifs with haw, swap, { tauto },
   sorry,
 end
 -- adding an edge adds 0 to crossed if the edge does not contain the vertex
