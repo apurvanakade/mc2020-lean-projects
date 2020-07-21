@@ -91,6 +91,18 @@ begin
   rw fl_even at cross_even,
   exact cross_even,
   exact nat.even_succ.mp cross_one_even,
+  contrapose! fl_even,
+  rw fl_even,
+  have one_cross : G.crossed p_t p_l + 1 = G.crossed p_t (p_e :: p_l),
+  apply crossed_add_edge,
+  right, rw h,
+  have cross_one_even : (G.crossed p_t p_l + 1).even,
+  rw one_cross,
+  rw fl_even at cross_even,
+  exact cross_even,
+  exact nat.even_succ.mp cross_one_even,
+  
+
   sorry,
 end
 -- if x=y, all vertices have crossed = even, else all vertices except x and y have crossed = odd
