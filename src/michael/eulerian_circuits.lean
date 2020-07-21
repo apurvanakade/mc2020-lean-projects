@@ -105,7 +105,7 @@ begin
     rwa cross_even,
     contrapose! cross_even,
     have zero_cross : G.crossed z p_l = G.crossed z (p_e :: p_l),
-    apply crossed_add_non_edge,
+    symmetry, apply crossed_add_non_edge,
     rw cross_even, split,
     symmetry, exact h1,
     symmetry, exact h,
@@ -128,7 +128,7 @@ begin
   rw eq_cond at h, exact eq_cond1_right(h),
   cases eq_cond, exact eq_cond_left(h),
   exact nat.even_succ.mpr cross_odd,
-  
+  sorry,
 end
 -- if x=y, all vertices have crossed = even, else all vertices except x and y have crossed = odd
 lemma path_crossed' {x y : V} (p : G.path x y) (z : V) : 
