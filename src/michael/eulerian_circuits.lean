@@ -101,7 +101,7 @@ begin
     push_neg, apply eq_to_even,
     right, split, { rw cross_even, exact ne_of_edge G p_e },
     rwa cross_even,
-    sorry,}
+    sorry },
   sorry,
   
 end
