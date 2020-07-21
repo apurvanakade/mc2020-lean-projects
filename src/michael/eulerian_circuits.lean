@@ -114,7 +114,21 @@ begin
 
   -- impliedby direction
   intro eq_cond,
-
+  by_cases z = hd,
+  rw h, rw ← one_cross,
+  have cross_odd : ¬ (G.crossed hd p_l).even,
+  by_contradiction,
+  rw ← h at a,
+  have eq_cond1 := even_to_eq(a),
+  cases eq_cond, cases eq_cond1,
+  rw ← eq_cond1 at eq_cond,
+  contrapose! eq_cond,
+  exact G.ne_of_edge p_e,
+  cases eq_cond1,
+  rw eq_cond at h, exact eq_cond1_right(h),
+  cases eq_cond, exact eq_cond_left(h),
+  exact nat.even_succ.mpr cross_odd,
+  
 end
 -- if x=y, all vertices have crossed = even, else all vertices except x and y have crossed = odd
 
