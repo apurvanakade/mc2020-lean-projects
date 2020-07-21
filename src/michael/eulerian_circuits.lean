@@ -50,6 +50,13 @@ end
 
 -- no edges contained in the nil path
 
+lemma crossed_add_edge {x y z : V} (e : G.adj x y) (p : G.path y z) (w : V) :
+(w = x ∨ w = y) → (G.crossed w p + 1 = G.crossed w (e :: p)) :=
+begin
+  sorry,
+end
+-- adding an edge adds 1 to crossed if the edge contains the vertex
+
 lemma path_crossed {x y : V} (p : G.path x y) (z : V) : 
 nat.even (G.crossed z p) ↔ (x = y) ∨ (z ≠ x ∧ z ≠ y)
 :=
@@ -65,6 +72,25 @@ begin
     { exact not_false },
     { apply_instance }},
   -- induction step
+  cases p_ih with even_to_eq eq_to_even,
+  split,
+  intro cross_even,
+  by_cases p_s = p_t,
+  have fl_even : (G.crossed z p_l).even,
+  apply eq_to_even,
+  left, exact h,
+  right,
+  split,
+  contrapose! fl_even,
+  rw fl_even,
+  have one_cross : G.crossed hd p_l + 1 = G.crossed hd (p_e :: p_l),
+  apply crossed_add_edge,
+  left, refl,
+  have cross_one_even : (G.crossed hd p_l + 1).even,
+  rw one_cross,
+  rw fl_even at cross_even,
+  exact cross_even,
+  exact nat.even_succ.mp cross_one_even,
   sorry,
 end
 -- if x=y, all vertices have crossed = even, else all vertices except x and y have crossed = odd
