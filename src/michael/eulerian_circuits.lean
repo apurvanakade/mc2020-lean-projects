@@ -56,7 +56,8 @@ begin
   intro h, delta crossed, 
   convert card_insert_of_not_mem _, 
   swap, { apply_instance }, swap, exact x,
-  sorry,
+  { sorry },
+  { sorry },
 end
 -- adding an edge adds 1 to crossed if the edge contains the vertex
 
