@@ -51,25 +51,56 @@ such that IJ=R.
 
 Might have to scrap this definition, not able to instatiate something of this type.
 -/
-class dedekind_inv [integral_domain R'] [comm_ring K] {f : localization_map(non_zero_divisors R')(K)}: Prop :=
+class dedekind_inv [integral_domain R'] [comm_ring K] (f : localization_map(non_zero_divisors R')(K)): Prop :=
     (inv_ideals : ∀ I : ring.fractional_ideal f,
     (∃ t : I, t ≠ 0) →  (∃ J : ring.fractional_ideal f, I*J = 1))
 /-
 The localization of an integral domain is another integral domain.
-
-instance local_id_is_id [integral_domain R'] [comm_ring K] (S : submonoid R') {f : localization_map(S)(K)} : localization.blah(S).is_integral_domain :=
+Needs a few more hypothesis: R' is nontrivial, S does not contain 0, etc.
+-/
+/- linter hates me
+instance local_id_is_id [integral_domain R'] (S : submonoid R') (rule_4 : ((0 : R') ∉  S)) {f : localization_map(S)(localization S)} : integral_domain (localization S) :=
 begin
-
-
+  split,
+    {exact mul_comm,},
+    {--nontrivial localization (pair ne) (likely more hypothesis needed)
+      sorry,
+    },
+    { --bulk, x * y = 0 → x = 0 ∨ y = 0
+      intros x y mul_eq_zero,
+      cases f.surj'(x) with a akey,
+      cases f.surj'(y) with b bkey,
+      have h1 : x * (f.to_fun( a.snd)) * y * (f.to_fun(b.snd))= 0,
+        {rw [mul_assoc(x), ← mul_comm(y), ← mul_assoc, mul_eq_zero,zero_mul,zero_mul],},
+      rw [akey, mul_assoc,bkey, ← f.map_mul', ← f.map_zero'] at h1,
+      rw [f.eq_iff_exists'(a.fst * b.fst)(0)] at h1,
+      cases h1 with c h1,
+      rw [zero_mul,mul_comm] at h1,
+      have h2 := eq_zero_or_eq_zero_of_mul_eq_zero(h1),
+      cases h2 with c_eq_zero h2,
+      {exfalso, --c cannot both be zero and in S.
+        
+        
+        sorry,
+      },
+      have h2 := eq_zero_or_eq_zero_of_mul_eq_zero(h2),
+      have blah : ((0 : R') = 0), ring,
+      cases h2 with a_eq_zero b_eq_zero,
+      {left,
+        rw a_eq_zero at akey,
+        exact localization_map.eq_zero_of_fst_eq_zero(f)(akey)(blah), --eq_zero_blah has terrible documentation
+      },
+      {right,
+        rw b_eq_zero at bkey,
+        exact localization_map.eq_zero_of_fst_eq_zero(f)(bkey)(blah),
+      },
+    },
 end
-
-
 -/
 
 
 
-
-instance dedekind_id_imp_dedekind_dvr [dedekind_id R'] [comm_ring K] : dedekind_dvr R'  :=
+instance dedekind_id_imp_dedekind_dvr [dedekind_id R'] : dedekind_dvr R'  :=
 begin
   --let f : ideal R' → _ := localization_map.at_prime( localization.at_prime(_)),
   split,
@@ -97,6 +128,8 @@ begin
       have h2 := eq_zero_or_eq_zero_of_mul_eq_zero(h1),
       cases h2 with c_eq_zero h2,
       {exfalso, --c cannot both be zero and in the complement of P.
+        have h4 : (0 : R') ∉  P.prime_compl, exact not_not_intro(ideal.zero_mem P),
+        --HERE
 
         sorry,
       },
@@ -135,4 +168,5 @@ begin
   sorry,
 end
 -/
+
 #check localization_map.eq_zero_of_fst_eq_zero
