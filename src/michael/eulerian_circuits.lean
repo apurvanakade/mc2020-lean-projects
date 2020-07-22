@@ -66,7 +66,10 @@ lemma crossed_add_non_edge {x y z : V} (e : G.adj x y) (p : G.path y z) (w : V) 
 begin
   intro h, delta crossed, congr, ext a, 
   split_ifs with haw, swap, { tauto },
-  sorry,
+  split, swap,
+  intro hp, exact mem.tail e haw p hp,
+  intro hp,
+  
 end
 -- adding an edge adds 0 to crossed if the edge does not contain the vertex
 
