@@ -17,7 +17,6 @@ multigraph_of_edges [(0,1), (0,2), (0,3), (1,2), (1,2), (2,3), (2,3)]
 -- def KonigsbergBridgesProblem : Prop :=
 -- ¬ is_Eulerian KonigsbergBridges
 
-
 open simple_graph
 namespace simple_graph
 
@@ -34,29 +33,32 @@ namespace simple_graph
 -- degree for undirected graphs
 
 def crossed (v : V) {x y : V} (p : G.path x y) : ℕ :=
-begin
-  have in_edge := finset.filter {w : V | if h : G.adj w v then G.mem h p else false } univ,
-  exact finset.card in_edge,
-end
+finset.card $ finset.filter {w : V | if h : G.adj w v then G.mem h p else false } univ
+
 -- number of times v is in an edge in path x y
 
 def has_eulerian_path : Prop := ∃ x y : V, ∃ p : G.path x y, G.is_Eulerian p
 
 lemma no_edge_in_nil {d x y : V} (h : G.adj x y) : ¬ G.mem h (path.nil d) :=
+by rintro ⟨⟩
+
+@[simp] lemma path.mem_cons {x s t u v: V} (e : G.adj x s) (h : G.adj u v) (p : G.path s t) :
+ G.mem h (e :: p) ↔ u = x ∧ v = s ∨ G.mem h p :=
 begin
-  by_contradiction,
-  cases a,
+  sorry
 end
 
 -- no edges contained in the nil path
-#check card_insert_of_not_mem
 lemma crossed_add_edge {x y z : V} (e : G.adj x y) (p : G.path y z) (w : V) :
 (w = x ∨ w = y) → ( G.crossed w (e :: p) = G.crossed w p + 1) :=
 begin
   intro h, delta crossed, 
   convert card_insert_of_not_mem _, 
   swap, { apply_instance }, swap, exact x,
-  { sorry },
+  { ext a, rw mem_filter, 
+    simp only [set.set_of_app_iff, true_and, mem_filter, mem_insert, mem_univ, path.mem_cons],  
+    split_ifs with haw, swap, { simp, contrapose! haw, subst haw, sorry },
+    { sorry }},
   { sorry },
 end
 -- adding an edge adds 1 to crossed if the edge contains the vertex
@@ -64,9 +66,10 @@ end
 lemma crossed_add_non_edge {x y z : V} (e : G.adj x y) (p : G.path y z) (w : V) :
 (w ≠ x ∧ w ≠ y) → ( G.crossed w (e :: p) = G.crossed w p) :=
 begin
-  intro h, delta crossed, congr, ext a, 
+  intro h, delta crossed, congr, ext a,
   split_ifs with haw, swap, { tauto },
-  sorry,
+  split, { tidy },
+  intro hp, apply mem.tail _ _ _ hp,
 end
 -- adding an edge adds 0 to crossed if the edge does not contain the vertex
 
@@ -162,7 +165,7 @@ begin
   split, 
   { by_cases hz : z = a ∨ z = s,
     { rw [crossed_add_edge, nat.even_succ, hp], assumption',
-      -- try { rintro ⟨rfl, h⟩; tauto },
+      try { rintro ⟨rfl, h⟩; tauto },
       cases hz; { rw hz, tauto }},
     push_neg at hz, 
     rw [crossed_add_non_edge, hp], assumption',
