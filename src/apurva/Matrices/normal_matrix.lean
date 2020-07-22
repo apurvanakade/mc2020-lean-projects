@@ -49,7 +49,7 @@ sorry
 sorry
 
 @[simp] lemma complex_transpose_mul [comm_semiring ℂ] (M : matrix m n ℂ) (N : matrix n l ℂ) :
-  (M ⬝ N).complex_transpose = N.complex_transpose ⬝ Mᵀ  :=
+  (M ⬝ N).complex_transpose = N.complex_transpose ⬝ M.complex_transpose  :=
 sorry
 
 @[simp] lemma complex_transpose_smul (c : ℂ) (M : matrix m n ℂ) :
@@ -66,74 +66,77 @@ end complex_transpose
 
 section unitary 
 
-def unitary (A : matrix n n ℂ) := 
+def matrix.unitary (A : matrix n n ℂ) := 
   A ⬝ (A.complex_transpose) = 1
 
-lemma unit_det_of_unitary {A : matrix n n ℂ} (hu : unitary A) : is_unit A.det :=
+lemma unit_det_of_unitary {A : matrix n n ℂ} (hu : A.unitary) : is_unit A.det :=
 begin 
   have := matrix.det_mul A A.complex_transpose,
-  unfold unitary at hu,
+  unfold matrix.unitary at hu,
   rw [hu, matrix.det_one] at this,
   exact is_unit_of_mul_eq_one (matrix.det A) (matrix.complex_transpose A).det (eq.symm this),
 end 
 
-lemma unit_of_unitary {A : matrix n n ℂ} (hu : unitary A) : is_unit A :=
+lemma unit_of_unitary {A : matrix n n ℂ} (hu : A.unitary) : is_unit A :=
   (matrix.is_unit_iff_is_unit_det A).mpr (unit_det_of_unitary hu)
 
-lemma unit_of_complex_transpose_of_unitary {A : matrix n n ℂ} (hu : unitary A) : is_unit A.complex_transpose :=
+/--------------------------------------------------------------
+-- I really need to say that A⁻¹ = A.complex transpose and 
+-- A.complex_transpose ⬝ A = 1
+--------------------------------------------------------------/
+
+lemma unit_of_complex_transpose {A : matrix n n ℂ} (hu : A.unitary) : is_unit A.complex_transpose :=
   sorry
 
-example {A : matrix n n ℂ} (hu : unitary A) : A⁻¹ = A.complex_transpose := 
-begin
-  have h1 := unit_of_unitary hu,
-  have h2 := unit_of_complex_transpose_of_unitary hu,
-  unfold unitary at hu,
-  --sorry
+lemma unitary.has_mul {A B : matrix n n ℂ} (hA : A.unitary) (hB : B.unitary) :
+  (A ⬝ B).unitary := 
+begin 
+unfold matrix.unitary at *,
+rw complex_transpose_mul,
+calc A ⬝ B ⬝ (B.complex_transpose ⬝ A.complex_transpose) 
+    = A ⬝ (B ⬝ (B.complex_transpose ⬝ A.complex_transpose)) : by rw matrix.mul_assoc
+... = A ⬝ ((B ⬝ B.complex_transpose) ⬝ A.complex_transpose) : by rw matrix.mul_assoc
+... = 1 : by {simp only [hB, matrix.one_mul, hA]},
 end 
 
-
-example {n : Type u}
-  [fintype n]
-  {A : matrix n n ℂ}
-  (this : is_unit A)
-  (hu : A ⬝ A.complex_transpose = 1) :
-  A⁻¹ = A.complex_transpose :=
-begin
-  suggest
-end
-
--- what would be the correct way to define this?
-structure unitary_matrices (n : Type u) [fintype n]:= 
-(val : matrix n n ℂ)
-(is_unitary : unitary val)
-
-instance : group (unitary_matrices n) := 
-{ mul := sorry,
-  mul_assoc := sorry,
-  one := sorry,
-  one_mul := sorry,
-  mul_one := sorry,
-  inv := sorry,
-  mul_left_inv := sorry}
+lemma unitary.has_one : (1 : matrix n n ℂ).unitary := 
+begin 
+  unfold matrix.unitary,
+  simp,
+end 
 
 end unitary 
 
-
-section hermitian 
-def hermitian (A : matrix n n ℂ) := 
-  A = A.complex_transpose
-end hermitian 
 
 section normal
 def normal (A : matrix n n ℂ) := 
   A * A.complex_transpose = A.complex_transpose * A
 
-theorem normal_of_hermitian {A : matrix n n ℂ} (hh : hermitian A) : normal A := 
-  by {unfold normal, unfold hermitian at hh, rw ←hh,}
 
-theorem normal_of_unitary {A : matrix n n ℂ} (hu : unitary A) : normal A := 
-sorry
-end normal 
+
+/--
+
+todo later: 
+
+@[ext]
+structure unitary_matrices (n : Type u) [fintype n]:= 
+(val : matrix n n ℂ)
+(is_unitary : val.unitary)
+
+
+instance : group (unitary_matrices n) := 
+{ mul := λ A B, 
+  { val := A.val ⬝ B.val,
+  is_unitary := unitary.has_mul A.is_unitary B.is_unitary},
+  mul_assoc := λ A B C, sorry ,
+  one := { val := (1 : matrix n n ℂ),
+    is_unitary := unitary.has_one},
+  one_mul := λ A, by { },
+  mul_one := sorry,
+  inv := sorry,
+  mul_left_inv := sorry}
+
+
 
 section symmetric 
 
@@ -142,6 +145,13 @@ end symmetric
 section skew_symmtric 
 
 end skew_symmtric 
+
+
+section hermitian 
+def hermitian (A : matrix n n ℂ) := 
+  A = A.complex_transpose
+end hermitian 
+
 
 section anti_hermitian 
 
@@ -152,3 +162,12 @@ end anti_hermitian
 -- (val_inv : val * inv = 1)
 -- (inv_val : inv * val = 1)
 
+theorem normal_of_hermitian {A : matrix n n ℂ} (hh : hermitian A) : normal A := 
+  by {unfold normal, unfold hermitian at hh, rw ←hh,}
+
+theorem normal_of_unitary {A : matrix n n ℂ} (hu : A.unitary) : normal A := 
+sorry
+end normal 
+
+
+-/
