@@ -130,9 +130,8 @@ begin
       {exfalso, --c cannot both be zero and in the complement of P.
         clear h1 akey a bkey b mul_eq_zero x y f,
         have h4 : (0 : R') ∉  P.prime_compl, exact not_not_intro(ideal.zero_mem P),
-        --HERE
-
-        sorry,
+        contrapose! h4,
+        rw ← c_eq_zero, apply c.property,
       },
       have h2 := eq_zero_or_eq_zero_of_mul_eq_zero(h2),
       have blah : ((0 : R') = 0), ring,
