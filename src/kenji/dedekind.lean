@@ -103,57 +103,45 @@ end
 instance dedekind_id_imp_dedekind_dvr [dedekind_id R'] : dedekind_dvr R'  :=
 begin
   --let f : ideal R' → _ := localization_map.at_prime( localization.at_prime(_)),
-  split,
-  {exact dedekind_id.noetherian,},
-  {intros P hp_nonzero hp_prime,
+  refine {noetherian := dedekind_id.noetherian, local_dvr_nonzero_prime := _},
+  -- the previous line is easily found with `suggest`
+  intros P hp_nonzero hp_prime,split,
+  {--localization of int domain gives int domain. 
+  --abstracting this proof would be good.
+    letI := hp_prime,
+    --this is very hacky, might be able to use above let f : ideal R' → _ expression
+    have f : localization_map.at_prime(localization.at_prime P)(P),  sorry,
+    split, { apply exists_pair_ne }, { exact mul_comm },
+    intros x y mul_eq_zero,
+    cases f.surj' x with a akey,
+    cases f.surj' y with b bkey,
+    have h1 : x * (f.to_fun( a.snd)) * y * (f.to_fun(b.snd))= 0,
+    { rw [mul_assoc x, ← mul_comm y, ← mul_assoc, mul_eq_zero], simp },
+    rw [akey, mul_assoc, bkey, ← f.map_mul', ← f.map_zero'] at h1,
+    rw f.eq_iff_exists' at h1,
+    -- c is not in the complement of the primes
+    cases h1 with c h1, 
+    rw [zero_mul, mul_comm] at h1,
+    -- simp at h1 does good here but I can't figure out which simp lemmas are firing
+    have h2 := eq_zero_or_eq_zero_of_mul_eq_zero h1,
+    cases h2 with c_eq_zero h2,
+    { have := not_not_intro (ideal.zero_mem P), contrapose! this,
+      rw ← c_eq_zero, apply c.property },
+    replace h2 := eq_zero_or_eq_zero_of_mul_eq_zero h2,
+    cases h2 with a_eq_zero b_eq_zero,
+    { left, rw a_eq_zero at akey,
+      exact localization_map.eq_zero_of_fst_eq_zero f akey rfl },--(f)(akey)(blah), 
+      --eq_zero_blah has terrible documentation
+    { right, rw b_eq_zero at bkey,
+      exact localization_map.eq_zero_of_fst_eq_zero f bkey rfl },
+  },
+  { --is_pir
     split,
-    {--localization of int domain gives int domain. 
-    --abstracting this proof would be good.
-      letI := hp_prime,
-      --this is very hacky, might be able to use above let f : ideal R' → _ expression
-      have f : localization_map.at_prime(localization.at_prime P)(P), sorry,
-      split,
-      {exact exists_pair_ne (localization.at_prime P),},
-      {exact mul_comm,},
-      intros x y mul_eq_zero,
-      cases f.surj'(x) with a akey,
-      cases f.surj'(y) with b bkey,
-      have h1 : x * (f.to_fun( a.snd)) * y * (f.to_fun(b.snd))= 0,
-        {rw [mul_assoc(x), ← mul_comm(y), ← mul_assoc, mul_eq_zero,zero_mul,zero_mul],},
-      rw [akey, mul_assoc,bkey, ← f.map_mul', ← f.map_zero'] at h1,
-      rw [f.eq_iff_exists'(a.fst * b.fst)(0)] at h1,
-      -- c is not in the complement of the primes
-      cases h1 with c h1,
-      rw [zero_mul,mul_comm] at h1,
-      have h2 := eq_zero_or_eq_zero_of_mul_eq_zero(h1),
-      cases h2 with c_eq_zero h2,
-      {exfalso, --c cannot both be zero and in the complement of P.
-        clear h1 akey a bkey b mul_eq_zero x y f,
-        have h4 : (0 : R') ∉  P.prime_compl, exact not_not_intro(ideal.zero_mem P),
-        --HERE
-
-        sorry,
-      },
-      have h2 := eq_zero_or_eq_zero_of_mul_eq_zero(h2),
-      have blah : ((0 : R') = 0), ring,
-      cases h2 with a_eq_zero b_eq_zero,
-      {left,
-        rw a_eq_zero at akey,
-        exact localization_map.eq_zero_of_fst_eq_zero(f)(akey)(blah), --eq_zero_blah has terrible documentation
-      },
-      {right,
-        rw b_eq_zero at bkey,
-        exact localization_map.eq_zero_of_fst_eq_zero(f)(bkey)(blah),
-      },
-    },
-    { --is_pir
-      split,
-      intro S,
-      sorry,
-    },
-    {--unique ideal
-      sorry,
-    },
+    intro S,
+    sorry,
+  },
+  {--unique ideal
+    sorry,
   },
 end
 /-

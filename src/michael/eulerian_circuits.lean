@@ -66,7 +66,10 @@ lemma crossed_add_non_edge {x y z : V} (e : G.adj x y) (p : G.path y z) (w : V) 
 begin
   intro h, delta crossed, congr, ext a, 
   split_ifs with haw, swap, { tauto },
-  sorry,
+  split, swap,
+  intro hp, exact mem.tail e haw p hp,
+  intro hp,
+  
 end
 -- adding an edge adds 0 to crossed if the edge does not contain the vertex
 
@@ -127,14 +130,25 @@ begin
   rw ← h at a,
   have eq_cond1 := even_to_eq(a),
   cases eq_cond, cases eq_cond1,
-  rw ← eq_cond1 at eq_cond,
-  contrapose! eq_cond,
-  exact G.ne_of_edge p_e,
-  cases eq_cond1,
-  rw eq_cond at h, exact eq_cond1_right(h),
+  {rw ← eq_cond1 at eq_cond, contrapose! eq_cond, exact G.ne_of_edge p_e},
+  {cases eq_cond1, rw eq_cond at h, exact eq_cond1_right(h)},
   cases eq_cond, exact eq_cond_left(h),
   exact nat.even_succ.mpr cross_odd,
-  sorry,
+  by_cases h1 : z = p_t,
+  exfalso, cases eq_cond,
+  rw eq_cond at h, exact h(h1),
+  cases eq_cond, exact eq_cond_right(h1),
+  by_cases h2 : z = p_s,
+  have cross_one : G.crossed z (p_e :: p_l) = G.crossed z p_l + 1,
+  apply crossed_add_edge, right, exact h2,
+  have cross_odd : ¬ (G.crossed z p_l).even,
+  finish,
+  rw cross_one,
+  exact nat.even_succ.mpr cross_odd,
+  have cross_zero : G.crossed z (p_e :: p_l) = G.crossed z p_l,
+  apply crossed_add_non_edge,
+  split, exact h, exact h2,
+  finish,
 end
 -- if x=y, all vertices have crossed = even, else all vertices except x and y have crossed = odd
 lemma path_crossed' {x y : V} (p : G.path x y) (z : V) : 
