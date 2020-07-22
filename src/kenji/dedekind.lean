@@ -48,19 +48,17 @@ Def 3: every nonzero fractional ideal is invertible.
 Fractional ideal: I = {r | rI ⊆ R}
 It is invertible if there exists a fractional ideal J
 such that IJ=R.
-
-Might have to scrap this definition, not able to instatiate something of this type.
 -/
-class dedekind_inv [integral_domain R'] [comm_ring K] (f : localization_map(non_zero_divisors R')(K)): Prop :=
+class dedekind_inv [integral_domain R'] (f : localization_map(non_zero_divisors R')(localization (non_zero_divisors R'))): Prop :=
     (inv_ideals : ∀ I : ring.fractional_ideal f,
     (∃ t : I, t ≠ 0) →  (∃ J : ring.fractional_ideal f, I*J = 1))
 /-
 The localization of an integral domain is another integral domain.
 -/
-instance local_id_is_id [integral_domain R'] (S : submonoid R') (zero_non_mem : ((0 : R') ∉  S)) {f : localization_map(S)(localization S)} : integral_domain (localization S) :=
+#check is_integral_domain
+theorem local_id_is_id [integral_domain R'] (S : submonoid R') (zero_non_mem : ((0 : R') ∉  S)) {f : localization_map(S)(localization S)} : is_integral_domain (localization S) :=
 begin
   split,
-    {exact mul_comm,},
     {--nontrivial localization (pair ne)
       use f.to_fun(1),
       use f.to_fun(0),
@@ -71,6 +69,7 @@ begin
       rw ← h2 at zero_non_mem,
       exact zero_non_mem(c.property),
     },
+    {exact mul_comm,},
     {--bulk
       intros x y mul_eq_zero,
       cases f.surj' x with a akey,
@@ -96,6 +95,8 @@ begin
     },
 end
 
+
+
 /-
 TODO: Abstract a lot of the nontrivial proofs.
 -/
@@ -113,12 +114,11 @@ begin
   {
     have zero_non_mem : (0 : R') ∉ P.prime_compl,
     {
-      have h2 := ideal.zero_mem P, contrapose! h2,
-      intro h3, exact hp_nonzero (false.rec (P = ⊥) (h2 h3)),
+      have this := ideal.zero_mem P, contrapose! this,
+      intro that, exact hp_nonzero (false.rec (P = ⊥) (this that)),
     },
-    have h3 := local_id_is_id(R')(P.prime_compl)(zero_non_mem),
-    --h3 is basically what we want, but no idea how to deal with the prop
-    sorry,
+    have := local_id_is_id R' P.prime_compl zero_non_mem,
+    exact this, --exact + previous line doesn't work for some odd reason
     exact f, --this line is a bit weird.
   },
   { --unique ideal
@@ -129,18 +129,13 @@ begin
     sorry,
   },
 end
-/-
-instance dedekind_dvr_imp_dedekind_inv [dedekind_dvr R'] [field K]: dedekind_inv R' :=
+
+instance dedekind_dvr_imp_dedekind_inv [dedekind_dvr R'] (f : fraction_map(R')(localization (non_zero_divisors R')) ): dedekind_inv R' f :=
 begin
     sorry,
 end
 
-#check R'
-#check dedekind_inv
-instance dedekind_inv_imp_dedekind_id [field K] [dedekind_inv R' K] : dedekind_id R' :=
+instance dedekind_inv_imp_dedekind_id (f : fraction_map(R')(localization (non_zero_divisors R'))) [dedekind_inv R' f] : dedekind_id R' :=
 begin
   sorry,
 end
--/
-
-#check localization_map.eq_zero_of_fst_eq_zero
