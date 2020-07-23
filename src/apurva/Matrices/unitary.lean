@@ -19,6 +19,7 @@ section unitary
 
 def matrix.unitary (A : matrix n n ℂ) := 
   A ⬝ (A.complex_transpose) = 1
+open matrix
 
 lemma unit_det_of_unitary {A : matrix n n ℂ} (hu : A.unitary) : is_unit A.det :=
 begin 
@@ -36,27 +37,42 @@ lemma unit_of_unitary {A : matrix n n ℂ} (hu : A.unitary) : is_unit A :=
 -- A.complex_transpose ⬝ A = 1
 --------------------------------------------------------------/
 
-lemma unitary_inv {A : matrix n n ℂ} (hu : A.unitary) : A⁻¹ = A.complex_transpose := 
+lemma unitary_inv {A : matrix n n ℂ} (hu : A.unitary) : A.complex_transpose = A⁻¹ := 
+begin
+  unfold unitary at hu,
+  rw [← mul_one A⁻¹, ← hu], rw [mul_eq_mul, ← matrix.mul_assoc], 
   sorry
+end
 
 lemma unit_of_complex_transpose {A : matrix n n ℂ} (hu : A.unitary) : is_unit A.complex_transpose :=
+begin
+  refine unit_of_unitary _,
+  unfold unitary, rw complex_transpose_transpose, rw unitary_inv hu, rw ← mul_eq_mul,
   sorry
+end
 
 lemma unitary.has_mul {A B : matrix n n ℂ} (hA : A.unitary) (hB : B.unitary) :
   (A ⬝ B).unitary := 
 begin 
-unfold matrix.unitary at *,
-rw complex_transpose_mul,
-calc A ⬝ B ⬝ (B.complex_transpose ⬝ A.complex_transpose) 
-    = A ⬝ (B ⬝ (B.complex_transpose ⬝ A.complex_transpose)) : by rw matrix.mul_assoc
-... = A ⬝ ((B ⬝ B.complex_transpose) ⬝ A.complex_transpose) : by rw matrix.mul_assoc
-... = 1 : by {simp only [hB, matrix.one_mul, hA]},
+  unfold matrix.unitary at *,
+  rw [complex_transpose_mul, matrix.mul_assoc, ← matrix.mul_assoc B], simp [hA, hB]
 end 
 
-lemma unitary.has_one : (1 : matrix n n ℂ).unitary := 
-begin 
-  unfold matrix.unitary,
-  simp,
-end 
+lemma unitary.has_one : (1 : matrix n n ℂ).unitary := by simp [matrix.unitary]
+include n
+instance unitary_group : group $ subtype $ unitary := 
+{ mul := begin
+  rintros ⟨A, hA⟩ ⟨B, hB⟩, refine ⟨A ⬝ B, _⟩, exact n, apply_instance, apply unitary.has_mul; assumption,
+end,
+  mul_assoc := sorry,
+  one := ⟨1, unitary.has_one⟩,
+  one_mul := sorry,
+  mul_one := sorry,
+  inv := sorry,
+  mul_left_inv := sorry }
+-- begin
+
+-- end
+-- #check subtype unitary
 
 end unitary 
