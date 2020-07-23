@@ -172,7 +172,7 @@ begin
   intro h,
   induction p with d a s t has p hp, 
   -- I think we need induction on the number of edges?
-  sorry,
+  sorry, sorry
 end
 
 lemma has_eulerian_path_iff : 
