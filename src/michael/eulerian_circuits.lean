@@ -69,7 +69,6 @@ begin
   split, swap,
   intro hp, exact mem.tail e haw p hp,
   intro hp,
-  
 end
 -- adding an edge adds 0 to crossed if the edge does not contain the vertex
 
