@@ -80,8 +80,8 @@ theorem rows_of_unitary {A : matrix n n ℂ} :
   i ≠ j → (vector.complex_dot_product (A i) (A j) = 0)
 := sorry
 
-lemma extension_unitary_of_unitary {k : ℕ} (A : matrix (fin k) (fin k) ℂ) : 
-  A.unitary → A.extension.unitary := 
+lemma extension_unitary_of_unitary {k : ℕ} (A : matrix (fin k) (fin k) ℂ) (a : ℝ): 
+  A.unitary → (A.extension a).unitary := 
 sorry
 
 theorem unitary_of_unit_vector [linear_order n] [has_zero n] (v : n → ℂ) : 

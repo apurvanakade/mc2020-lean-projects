@@ -19,21 +19,21 @@ variables {k : ℕ}
 
 -- how to rewrite this using fin.cons
 -- also need a better name
-def matrix.extension (A : matrix (fin k) (fin k) ℂ) : matrix (fin (k+1)) (fin (k+1)) ℂ
+def matrix.extension (A : matrix (fin k) (fin k) ℂ) (a : ℂ) : 
+  matrix (fin (k+1)) (fin (k+1)) ℂ
 := 
 λ i j,
 match i, j with
-| ⟨0, _⟩, ⟨0, _⟩       := 1
+| ⟨0, _⟩, ⟨0, _⟩       := a
 | ⟨0, _⟩, _            := 0
 | _, ⟨0, _⟩            := 0
 | ⟨x+1, hx⟩, ⟨y+1, hy⟩ := A ⟨x, nat.lt_of_succ_lt_succ hx⟩ ⟨y, nat.lt_of_succ_lt_succ hy⟩
 end 
 
-lemma matrix.extension_mul (A : matrix (fin k) (fin k) ℂ)
-(B : matrix (fin k) (fin k) ℂ) : 
-(A ⬝ B).extension = A.extension ⬝ B.extension :=
+lemma matrix.extension_mul (A B : matrix (fin k) (fin k) ℂ) (a b : ℂ) : 
+  (A.extension a)⬝ (B.extension b) = (A ⬝ B).extension (a * b):=
 sorry 
 
-lemma matrix.extension_conj (A : matrix (fin k) (fin k) ℂ) : 
-  A.extension.conj = A.conj.extension := sorry 
+lemma matrix.extension_conj (A : matrix (fin k) (fin k) ℂ) (a : ℂ): 
+  (A.extension a).conj = A.conj.extension a.conj := sorry 
 
