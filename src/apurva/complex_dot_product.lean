@@ -3,6 +3,7 @@ import data.fintype.basic
 import data.matrix.basic
 import linear_algebra.finite_dimensional
 import .complex_transpose
+import analysis.normed_space.basic
 import tactic 
 
 noncomputable theory 
@@ -32,6 +33,8 @@ def orthogonal_complement (v : Euc) : subspace ℂ Euc :=
 
 end vector
 
+notation `∥`:1024 e:1 `∥`:1 := vector.complex_dot_product e e
+
 namespace subspace 
   -- variables {W : Type u'} [add_comm_group W] [vector_space ℂ W] [finite_dimensional ℂ W]
 
@@ -43,13 +46,5 @@ end
 
 def orthogonal_complement (S : set Euc) : subspace ℂ Euc := 
 Inf {U | ∀ v ∈ S, v ∈ U}
-
--- CR jstark for apurvnakade: I don't understand what your theorem is supposed to say.
---  Is this version what you were going for?
--- need coercion from subspace to larger space
-theorem orthogonal_in_orthogonal_complement 
-(S : set Euc) {v w : Euc} (hv : v ∈ S) (hw : w ∈ orthogonal_complement S) : 
-  vector.orthogonal v w := 
-sorry
 
 end subspace

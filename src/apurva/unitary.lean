@@ -7,6 +7,7 @@ import linear_algebra.determinant
 import linear_algebra.nonsingular_inverse
 import .complex_transpose
 import .complex_dot_product
+import .matrix_extension
 import tactic 
 
 noncomputable theory 
@@ -16,8 +17,6 @@ open_locale matrix
 universes u u'
 variables {m n l : Type u} [fintype m] [fintype n] [fintype l]
 variables {k : ℕ}
-
-local notation `Euc` := (n → ℂ)
 
 section unitary 
 
@@ -35,11 +34,6 @@ end
 
 lemma unit_of_unitary {A : matrix n n ℂ} (hu : A.unitary) : is_unit A :=
   (matrix.is_unit_iff_is_unit_det A).mpr (unit_det_of_unitary hu)
-
-/--------------------------------------------------------------
--- I really need to say that A⁻¹ = A.complex transpose and 
--- A.complex_transpose ⬝ A = 1
---------------------------------------------------------------/
 
 lemma unitary_inv {A : matrix n n ℂ} (hu : A.unitary) : A.complex_transpose = A⁻¹ := 
 begin
@@ -86,23 +80,15 @@ theorem rows_of_unitary {A : matrix n n ℂ} :
   i ≠ j → (vector.complex_dot_product (A i) (A j) = 0)
 := sorry
 
--- how to rewrite this using fin.cons
--- also need a better name
-def matrix.extension (A : matrix (fin k) (fin k) ℂ) : matrix (fin (k+1)) (fin (k+1)) ℂ
-:= 
-λ i j,
-match i, j with
-| ⟨0, _⟩, ⟨0, _⟩       := 1
-| ⟨0, _⟩, _            := 0
-| _, ⟨0, _⟩            := 0
-| ⟨x+1, hx⟩, ⟨y+1, hy⟩ := A ⟨x, nat.lt_of_succ_lt_succ hx⟩ ⟨y, nat.lt_of_succ_lt_succ hy⟩
-end 
-
 lemma extension_unitary_of_unitary {k : ℕ} (A : matrix (fin k) (fin k) ℂ) : 
   A.unitary → A.extension.unitary := 
 sorry
 
-
-
+theorem unitary_of_unit_vector [linear_order n] [has_zero n] (v : n → ℂ) : 
+  ∥v∥ = 1 → 
+  ∃ A : matrix n n ℂ,
+  A.unitary ∧ 
+  (A 0) = v :=
+sorry
 
 end unitary
