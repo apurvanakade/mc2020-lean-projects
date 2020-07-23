@@ -156,15 +156,7 @@ begin
     ext, split_ifs,
     { have := no_edge_in_nil G h, simpa }, tauto },
   have has' := G.ne_of_edge has,
-  split, 
-  { by_cases hz : z = a ∨ z = s,
-    { rw [crossed_add_edge, nat.even_succ, hp], assumption',
-      try { rintro ⟨rfl, h⟩; tauto },
-      cases hz; { rw hz, tauto }},
-    push_neg at hz, 
-    rw [crossed_add_non_edge, hp], assumption',
-    rintro ⟨rfl, h⟩; tauto },
-
+  split; 
   { by_cases hz : z = a ∨ z = s,
     { rw [crossed_add_edge, nat.even_succ, hp], assumption',
       try { rintro ⟨rfl, h⟩, tauto },
@@ -195,9 +187,10 @@ begin
       have : finset.card {x, y} = 2, { rw [card_insert_of_not_mem, card_singleton], rwa mem_singleton },
       convert this, ext, 
       suffices : ¬(G.degree a).even ↔ a = x ∨ a = y, convert this; { simp; refl },
-      rw [deg_cross, path_crossed'], 
-      simp [h]; tauto,
+      rw [deg_cross, path_crossed'], simp [h]; tauto,
     }},
+  intro h, simp only [mem_insert, card_eq_zero, mem_singleton] at h, 
+  -- I think we need induction on the number of edges?
   sorry,
 end
 -- iff the number of vertices of odd degree is 0 or 2
