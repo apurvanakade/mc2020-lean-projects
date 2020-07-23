@@ -169,6 +169,9 @@ end
 lemma degree_eq_crossed {x y : V} (p : G.path x y) : 
 G.is_Eulerian p → ∀ z : V, G.degree z = G.crossed z p :=
 begin
+  intro h,
+  induction p with d a s t has p hp, 
+  -- I think we need induction on the number of edges?
   sorry,
 end
 

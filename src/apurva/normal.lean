@@ -17,7 +17,7 @@ local notation `Euc` := (n → ℂ)
 
 
 section upper_triangular 
-def matrix.upper_triangular [has_lt n] (A : matrix n n ℂ) := 
+def matrix.upper_triangular [linear_order n] (A : matrix n n ℂ) := 
   ∀ i j, (i < j) → (A i j = 0)
 
 end upper_triangular 
@@ -26,7 +26,7 @@ section normal
 def matrix.normal (A : matrix n n ℂ) := 
   A * A.complex_transpose = A.complex_transpose * A
 
-theorem diagonal_of_upper_triangular_normal [has_lt n] {A : matrix n n ℂ} 
+theorem diagonal_of_upper_triangular_normal [linear_order n] {A : matrix n n ℂ} 
   (hAu : A.upper_triangular) (hAn : A.normal) : ∃ D : n → ℂ, A = matrix.diagonal D
 := sorry
 
