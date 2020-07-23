@@ -1,13 +1,10 @@
-import ring_theory.noetherian
-import ring_theory.localization
-import ring_theory.ideals
 import ring_theory.fractional_ideal
-universe u
-universe v
+universes u v 
 
 variables (R : Type u) [comm_ring R] {A : Type v} [comm_ring A]
 variables (K : Type u) [field K] (R' : Type u) [integral_domain R']
 variables [algebra R A]
+
 open function
 open_locale big_operators
 
@@ -55,7 +52,6 @@ class dedekind_inv [integral_domain R'] (f : localization_map(non_zero_divisors 
 /-
 The localization of an integral domain is another integral domain.
 -/
-#check is_integral_domain
 theorem local_id_is_id [integral_domain R'] (S : submonoid R') (zero_non_mem : ((0 : R') ∉  S)) {f : localization_map(S)(localization S)} : is_integral_domain (localization S) :=
 begin
   split,
@@ -112,14 +108,9 @@ begin
   have f : localization_map.at_prime(localization.at_prime P)(P),  sorry,
   split,
   {
-    have zero_non_mem : (0 : R') ∉ P.prime_compl,
-    {
-      have this := ideal.zero_mem P, contrapose! this,
-      intro that, exact hp_nonzero (false.rec (P = ⊥) (this that)),
-    },
-    have := local_id_is_id R' P.prime_compl zero_non_mem,
-    exact this, --exact + previous line doesn't work for some odd reason
-    exact f, --this line is a bit weird.
+    suffices zero_non_mem : (0 : R') ∉ P.prime_compl,
+    { apply local_id_is_id; assumption },
+    have := ideal.zero_mem P, simpa,
   },
   { --unique ideal
     
