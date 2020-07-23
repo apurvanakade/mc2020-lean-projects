@@ -174,8 +174,8 @@ begin
     rintro ⟨rfl, h⟩; tauto },
 end
 
-lemma degree_eq_crossed {x y : V} (p : G.path x y) (z : V) : 
-G.is_Eulerian p → G.degree z = G.crossed z p :=
+lemma degree_eq_crossed {x y : V} (p : G.path x y) : 
+G.is_Eulerian p → ∀ z : V, G.degree z = G.crossed z p :=
 begin
   sorry,
 end
@@ -184,9 +184,22 @@ lemma has_eulerian_path_iff :
   G.has_eulerian_path ↔ card (filter {v : V | ¬ nat.even (G.degree v)} univ) ∈ ({0, 2} : finset ℕ) :=
 begin
   split,
-  { 
-
-  }
+  { intro hep,
+    cases hep with x hep,
+    cases hep with y hep,
+    cases hep with p hep,
+    have deg_cross := G.degree_eq_crossed p(hep),
+    simp at *, 
+    by_cases x = y,
+    { left,
+      convert finset.filter_false _,
+      { ext, simp, 
+        rw deg_cross, rw path_crossed, left, exact h},
+      {apply_instance},},
+    { right,
+      sorry,
+    }},
+  sorry,
 end
 -- iff the number of vertices of odd degree is 0 or 2
 
