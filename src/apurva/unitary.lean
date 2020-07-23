@@ -1,9 +1,13 @@
 import data.complex.basic 
 import data.fintype.basic 
+import data.fin
 import data.matrix.basic
-import .complex_transpose
+import linear_algebra.basis
 import linear_algebra.determinant
 import linear_algebra.nonsingular_inverse
+import .complex_transpose
+import .complex_dot_product
+import .matrix_extension
 import tactic 
 
 noncomputable theory 
@@ -12,8 +16,7 @@ open_locale matrix
 
 universes u u'
 variables {m n l : Type u} [fintype m] [fintype n] [fintype l]
-
-local notation `Euc` := (n → ℂ)
+variables {k : ℕ}
 
 section unitary 
 
@@ -31,11 +34,6 @@ end
 
 lemma unit_of_unitary {A : matrix n n ℂ} (hu : A.unitary) : is_unit A :=
   (matrix.is_unit_iff_is_unit_det A).mpr (unit_det_of_unitary hu)
-
-/--------------------------------------------------------------
--- I really need to say that A⁻¹ = A.complex transpose and 
--- A.complex_transpose ⬝ A = 1
---------------------------------------------------------------/
 
 lemma unitary_inv {A : matrix n n ℂ} (hu : A.unitary) : A.complex_transpose = A⁻¹ := 
 begin
@@ -75,4 +73,22 @@ end,
 -- end
 -- #check subtype unitary
 
-end unitary 
+theorem rows_of_unitary {A : matrix n n ℂ} : 
+  A.unitary ↔ 
+  ∀ i j : n, 
+  (vector.complex_dot_product (A i) (A i) = 1) ∧ 
+  i ≠ j → (vector.complex_dot_product (A i) (A j) = 0)
+:= sorry
+
+lemma extension_unitary_of_unitary {k : ℕ} (A : matrix (fin k) (fin k) ℂ) (a : ℝ): 
+  A.unitary → (A.extension a).unitary := 
+sorry
+
+theorem unitary_of_unit_vector [linear_order n] [has_zero n] (v : n → ℂ) : 
+  ∥v∥ = 1 → 
+  ∃ A : matrix n n ℂ,
+  A.unitary ∧ 
+  (A 0) = v :=
+sorry
+
+end unitary

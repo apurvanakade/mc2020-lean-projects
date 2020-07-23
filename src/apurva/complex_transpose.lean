@@ -67,4 +67,10 @@ end
 by ext; simp
 
 
+
+lemma det_of_complex_transpose {A : matrix n n ℂ} : 
+A.complex_transpose.det = complex.conj (A.det) :=
+  sorry
+
+
 end complex_transpose
