@@ -17,7 +17,6 @@ multigraph_of_edges [(0,1), (0,2), (0,3), (1,2), (1,2), (2,3), (2,3)]
 -- def KonigsbergBridgesProblem : Prop :=
 -- ¬ is_Eulerian KonigsbergBridges
 
-
 open simple_graph
 namespace simple_graph
 
@@ -34,29 +33,32 @@ namespace simple_graph
 -- degree for undirected graphs
 
 def crossed (v : V) {x y : V} (p : G.path x y) : ℕ :=
-begin
-  have in_edge := finset.filter {w : V | if h : G.adj w v then G.mem h p else false } univ,
-  exact finset.card in_edge,
-end
+finset.card $ finset.filter {w : V | if h : G.adj w v then G.mem h p else false } univ
+
 -- number of times v is in an edge in path x y
 
 def has_eulerian_path : Prop := ∃ x y : V, ∃ p : G.path x y, G.is_Eulerian p
 
 lemma no_edge_in_nil {d x y : V} (h : G.adj x y) : ¬ G.mem h (path.nil d) :=
+by rintro ⟨⟩
+
+@[simp] lemma path.mem_cons {x s t u v: V} (e : G.adj x s) (h : G.adj u v) (p : G.path s t) :
+ G.mem h (e :: p) ↔ u = x ∧ v = s ∨ G.mem h p :=
 begin
-  by_contradiction,
-  cases a,
+  sorry
 end
 
 -- no edges contained in the nil path
-#check card_insert_of_not_mem
 lemma crossed_add_edge {x y z : V} (e : G.adj x y) (p : G.path y z) (w : V) :
 (w = x ∨ w = y) → ( G.crossed w (e :: p) = G.crossed w p + 1) :=
 begin
   intro h, delta crossed, 
   convert card_insert_of_not_mem _, 
   swap, { apply_instance }, swap, exact x,
-  { sorry },
+  { ext a, rw mem_filter, 
+    simp only [set.set_of_app_iff, true_and, mem_filter, mem_insert, mem_univ, path.mem_cons],  
+    split_ifs with haw, swap, { simp, contrapose! haw, subst haw, sorry },
+    { sorry }},
   { sorry },
 end
 -- adding an edge adds 1 to crossed if the edge contains the vertex
@@ -64,11 +66,10 @@ end
 lemma crossed_add_non_edge {x y z : V} (e : G.adj x y) (p : G.path y z) (w : V) :
 (w ≠ x ∧ w ≠ y) → ( G.crossed w (e :: p) = G.crossed w p) :=
 begin
-  intro h, delta crossed, congr, ext a, 
+  intro h, delta crossed, congr, ext a,
   split_ifs with haw, swap, { tauto },
-  split, swap,
-  intro hp, exact mem.tail e haw p hp,
-  intro hp,
+  split, { tidy },
+  intro hp, apply mem.tail _ _ _ hp,
 end
 -- adding an edge adds 0 to crossed if the edge does not contain the vertex
 
@@ -114,40 +115,34 @@ begin
     contrapose! cross_even,
     have zero_cross : G.crossed z p_l = G.crossed z (p_e :: p_l),
     symmetry, apply crossed_add_non_edge,
-    rw cross_even, split,
-    symmetry, exact h1,
-    symmetry, exact h,
+    rw cross_even, tauto, 
     rw ← zero_cross,
     tauto,},
 
   -- impliedby direction
-  intro eq_cond,
-  by_cases z = hd,
-  rw h, rw ← one_cross,
-  have cross_odd : ¬ (G.crossed hd p_l).even,
-  by_contradiction,
-  rw ← h at a,
-  have eq_cond1 := even_to_eq(a),
-  cases eq_cond, cases eq_cond1,
-  {rw ← eq_cond1 at eq_cond, contrapose! eq_cond, exact G.ne_of_edge p_e},
-  {cases eq_cond1, rw eq_cond at h, exact eq_cond1_right(h)},
-  cases eq_cond, exact eq_cond_left(h),
-  exact nat.even_succ.mpr cross_odd,
-  by_cases h1 : z = p_t,
-  exfalso, cases eq_cond,
-  rw eq_cond at h, exact h(h1),
-  cases eq_cond, exact eq_cond_right(h1),
-  by_cases h2 : z = p_s,
-  have cross_one : G.crossed z (p_e :: p_l) = G.crossed z p_l + 1,
-  apply crossed_add_edge, right, exact h2,
-  have cross_odd : ¬ (G.crossed z p_l).even,
-  finish,
-  rw cross_one,
-  exact nat.even_succ.mpr cross_odd,
-  have cross_zero : G.crossed z (p_e :: p_l) = G.crossed z p_l,
-  apply crossed_add_non_edge,
-  split, exact h, exact h2,
-  finish,
+  { intro eq_cond,
+    by_cases z = hd,
+    { rw h, rw ← one_cross,
+      have cross_odd : ¬ (G.crossed hd p_l).even,
+      by_contradiction, rw ← h at a,
+      have eq_cond1 := even_to_eq(a), 
+      cases eq_cond, cases eq_cond1,
+      { rw ← eq_cond1 at eq_cond, contrapose! eq_cond, exact G.ne_of_edge p_e },
+      { cases eq_cond1, rw eq_cond at h, exact eq_cond1_right(h) },
+      { cases eq_cond, exact eq_cond_left(h) },
+      exact nat.even_succ.mpr cross_odd },
+    by_cases h1 : z = p_t,
+    { exfalso, 
+      cases eq_cond, rw eq_cond at h, exact h(h1), 
+      cases eq_cond, exact eq_cond_right(h1) },
+    by_cases h2 : z = p_s,
+    have cross_one : G.crossed z (p_e :: p_l) = G.crossed z p_l + 1,
+    { apply crossed_add_edge, right, exact h2 },
+    have cross_odd : ¬ (G.crossed z p_l).even, { finish },
+    { rw cross_one, exact nat.even_succ.mpr cross_odd },
+    have cross_zero : G.crossed z (p_e :: p_l) = G.crossed z p_l,
+    { apply crossed_add_non_edge, split, exact h, exact h2 },
+    finish},
 end
 -- if x=y, all vertices have crossed = even, else all vertices except x and y have crossed = odd
 lemma path_crossed' {x y : V} (p : G.path x y) (z : V) : 
@@ -164,7 +159,7 @@ begin
   split, 
   { by_cases hz : z = a ∨ z = s,
     { rw [crossed_add_edge, nat.even_succ, hp], assumption',
-      -- try { rintro ⟨rfl, h⟩; tauto },
+      try { rintro ⟨rfl, h⟩; tauto },
       cases hz; { rw hz, tauto }},
     push_neg at hz, 
     rw [crossed_add_non_edge, hp], assumption',
@@ -179,9 +174,20 @@ begin
     rintro ⟨rfl, h⟩; tauto },
 end
 
+lemma degree_eq_crossed {x y : V} (p : G.path x y) (z : V) : 
+G.is_Eulerian p → G.degree z = G.crossed z p :=
+begin
+  sorry,
+end
+
 lemma has_eulerian_path_iff : 
   G.has_eulerian_path ↔ card (filter {v : V | ¬ nat.even (G.degree v)} univ) ∈ ({0, 2} : finset ℕ) :=
-sorry
+begin
+  split,
+  { 
+
+  }
+end
 -- iff the number of vertices of odd degree is 0 or 2
 
 end simple_graph

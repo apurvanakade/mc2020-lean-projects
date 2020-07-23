@@ -33,10 +33,10 @@ it is an integral domain and is a PIR and has one non-zero maximal ideal.
 -/
 class discrete_valuation_ring [comm_ring R] : Prop :=
     (int_domain : is_integral_domain(R))
-    (is_pir : is_principal_ideal_ring(R))
     (unique_nonzero_prime : ∃ Q : ideal R,
     Q ≠ ⊥ → Q.is_prime →  (∀ P : ideal R, P.is_prime → P = ⊥ ∨ P = Q)
     )
+    (is_pir : is_principal_ideal_ring(R))
 
 class dedekind_dvr [integral_domain R] : Prop :=
     (noetherian : is_noetherian_ring R)
@@ -48,114 +48,94 @@ Def 3: every nonzero fractional ideal is invertible.
 Fractional ideal: I = {r | rI ⊆ R}
 It is invertible if there exists a fractional ideal J
 such that IJ=R.
-
-Might have to scrap this definition, not able to instatiate something of this type.
 -/
-class dedekind_inv [integral_domain R'] [comm_ring K] (f : localization_map(non_zero_divisors R')(K)): Prop :=
+class dedekind_inv [integral_domain R'] (f : localization_map(non_zero_divisors R')(localization (non_zero_divisors R'))): Prop :=
     (inv_ideals : ∀ I : ring.fractional_ideal f,
     (∃ t : I, t ≠ 0) →  (∃ J : ring.fractional_ideal f, I*J = 1))
 /-
 The localization of an integral domain is another integral domain.
-Needs a few more hypothesis: R' is nontrivial, S does not contain 0, etc.
 -/
-/- linter hates me
-instance local_id_is_id [integral_domain R'] (S : submonoid R') (rule_4 : ((0 : R') ∉  S)) {f : localization_map(S)(localization S)} : integral_domain (localization S) :=
+#check is_integral_domain
+theorem local_id_is_id [integral_domain R'] (S : submonoid R') (zero_non_mem : ((0 : R') ∉  S)) {f : localization_map(S)(localization S)} : is_integral_domain (localization S) :=
 begin
   split,
-    {exact mul_comm,},
-    {--nontrivial localization (pair ne) (likely more hypothesis needed)
-      sorry,
+    {--nontrivial localization (pair ne)
+      use f.to_fun(1),
+      use f.to_fun(0),
+      intro one_eq_zero,
+      have h2 := (localization_map.eq_iff_exists(f)).1 one_eq_zero,
+      cases h2 with c h2,
+      rw [zero_mul, one_mul] at h2,
+      rw ← h2 at zero_non_mem,
+      exact zero_non_mem(c.property),
     },
-    { --bulk, x * y = 0 → x = 0 ∨ y = 0
+    {exact mul_comm,},
+    {--bulk
       intros x y mul_eq_zero,
-      cases f.surj'(x) with a akey,
-      cases f.surj'(y) with b bkey,
+      cases f.surj' x with a akey,
+      cases f.surj' y with b bkey,
       have h1 : x * (f.to_fun( a.snd)) * y * (f.to_fun(b.snd))= 0,
-        {rw [mul_assoc(x), ← mul_comm(y), ← mul_assoc, mul_eq_zero,zero_mul,zero_mul],},
-      rw [akey, mul_assoc,bkey, ← f.map_mul', ← f.map_zero'] at h1,
-      rw [f.eq_iff_exists'(a.fst * b.fst)(0)] at h1,
-      cases h1 with c h1,
-      rw [zero_mul,mul_comm] at h1,
-      have h2 := eq_zero_or_eq_zero_of_mul_eq_zero(h1),
+      { rw [mul_assoc x, ← mul_comm y, ← mul_assoc, mul_eq_zero], simp },
+      rw [akey, mul_assoc, bkey, ← f.map_mul', ← f.map_zero'] at h1,
+      rw f.eq_iff_exists' at h1,
+      cases h1 with c h1, 
+      rw [zero_mul, mul_comm] at h1,
+      have h2 := eq_zero_or_eq_zero_of_mul_eq_zero h1,
       cases h2 with c_eq_zero h2,
-      {exfalso, --c cannot both be zero and in S.
-        
-        
-        sorry,
+      {exfalso,
+        rw ← c_eq_zero at zero_non_mem,
+        exact zero_non_mem(c.property),
       },
-      have h2 := eq_zero_or_eq_zero_of_mul_eq_zero(h2),
-      have blah : ((0 : R') = 0), ring,
+      replace h2 := eq_zero_or_eq_zero_of_mul_eq_zero h2,
       cases h2 with a_eq_zero b_eq_zero,
-      {left,
-        rw a_eq_zero at akey,
-        exact localization_map.eq_zero_of_fst_eq_zero(f)(akey)(blah), --eq_zero_blah has terrible documentation
-      },
-      {right,
-        rw b_eq_zero at bkey,
-        exact localization_map.eq_zero_of_fst_eq_zero(f)(bkey)(blah),
-      },
+      { left, rw a_eq_zero at akey,
+        exact localization_map.eq_zero_of_fst_eq_zero f akey rfl },
+      { right, rw b_eq_zero at bkey,
+        exact localization_map.eq_zero_of_fst_eq_zero f bkey rfl },
     },
 end
+
+
+
+/-
+TODO: Abstract a lot of the nontrivial proofs.
 -/
-
-
 
 instance dedekind_id_imp_dedekind_dvr [dedekind_id R'] : dedekind_dvr R'  :=
 begin
   --let f : ideal R' → _ := localization_map.at_prime( localization.at_prime(_)),
   refine {noetherian := dedekind_id.noetherian, local_dvr_nonzero_prime := _},
   -- the previous line is easily found with `suggest`
-  intros P hp_nonzero hp_prime,split,
-  {--localization of int domain gives int domain. 
-  --abstracting this proof would be good.
-    letI := hp_prime,
-    --this is very hacky, might be able to use above let f : ideal R' → _ expression
-    have f : localization_map.at_prime(localization.at_prime P)(P),  sorry,
-    split, { apply exists_pair_ne }, { exact mul_comm },
-    intros x y mul_eq_zero,
-    cases f.surj' x with a akey,
-    cases f.surj' y with b bkey,
-    have h1 : x * (f.to_fun( a.snd)) * y * (f.to_fun(b.snd))= 0,
-    { rw [mul_assoc x, ← mul_comm y, ← mul_assoc, mul_eq_zero], simp },
-    rw [akey, mul_assoc, bkey, ← f.map_mul', ← f.map_zero'] at h1,
-    rw f.eq_iff_exists' at h1,
-    -- c is not in the complement of the primes
-    cases h1 with c h1, 
-    rw [zero_mul, mul_comm] at h1,
-    -- simp at h1 does good here but I can't figure out which simp lemmas are firing
-    have h2 := eq_zero_or_eq_zero_of_mul_eq_zero h1,
-    cases h2 with c_eq_zero h2,
-    { have := not_not_intro (ideal.zero_mem P), contrapose! this,
-      rw ← c_eq_zero, apply c.property },
-    replace h2 := eq_zero_or_eq_zero_of_mul_eq_zero h2,
-    cases h2 with a_eq_zero b_eq_zero,
-    { left, rw a_eq_zero at akey,
-      exact localization_map.eq_zero_of_fst_eq_zero f akey rfl },--(f)(akey)(blah), 
-      --eq_zero_blah has terrible documentation
-    { right, rw b_eq_zero at bkey,
-      exact localization_map.eq_zero_of_fst_eq_zero f bkey rfl },
+  intros P hp_nonzero hp_prime,
+  letI := hp_prime,
+  --this is very hacky, might be able to use above let f : ideal R' → _ expression
+  have f : localization_map.at_prime(localization.at_prime P)(P),  sorry,
+  split,
+  {
+    have zero_non_mem : (0 : R') ∉ P.prime_compl,
+    {
+      have this := ideal.zero_mem P, contrapose! this,
+      intro that, exact hp_nonzero (false.rec (P = ⊥) (this that)),
+    },
+    have := local_id_is_id R' P.prime_compl zero_non_mem,
+    exact this, --exact + previous line doesn't work for some odd reason
+    exact f, --this line is a bit weird.
   },
-  { --is_pir
-    split,
-    intro S,
+  { --unique ideal
+    
     sorry,
   },
-  {--unique ideal
+  {--is_pir
     sorry,
   },
 end
-/-
-instance dedekind_dvr_imp_dedekind_inv [dedekind_dvr R'] [field K]: dedekind_inv R' :=
+
+instance dedekind_dvr_imp_dedekind_inv [dedekind_dvr R'] (f : fraction_map(R')(localization (non_zero_divisors R')) ): dedekind_inv R' f :=
 begin
     sorry,
 end
 
-#check R'
-#check dedekind_inv
-instance dedekind_inv_imp_dedekind_id [field K] [dedekind_inv R' K] : dedekind_id R' :=
+instance dedekind_inv_imp_dedekind_id (f : fraction_map(R')(localization (non_zero_divisors R'))) [dedekind_inv R' f] : dedekind_id R' :=
 begin
   sorry,
 end
--/
-
-#check localization_map.eq_zero_of_fst_eq_zero
