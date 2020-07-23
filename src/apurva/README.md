@@ -49,3 +49,4 @@ Let `A` be a normal matrix.
 * https://leanprover-community.github.io/mathlib_docs/linear_algebra/matrix.html
 * [LftCM2020: Linear algebra - Anne Baanen's
  lecture video](https://youtu.be/EnZvGCU_jpc)
+* http://math.fau.edu/schonbek/LinearAlgebra/lafa13normalspectra.pdf
