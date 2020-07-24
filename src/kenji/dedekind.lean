@@ -1,4 +1,5 @@
 import ring_theory.fractional_ideal
+import ring_theory.discrete_valuation_ring
 universes u v 
 
 variables (R : Type u) [comm_ring R] {A : Type v} [comm_ring A]
@@ -28,17 +29,21 @@ localization at each nonzero prime ideals is a DVR.
 Something is a discrete valuation ring if
 it is an integral domain and is a PIR and has one non-zero maximal ideal.
 -/
-class discrete_valuation_ring [comm_ring R] : Prop :=
-    (int_domain : is_integral_domain(R))
-    (unique_nonzero_prime : ∃ Q : ideal R,
-    Q ≠ ⊥ → Q.is_prime →  (∀ P : ideal R, P.is_prime → P = ⊥ ∨ P = Q)
-    )
-    (is_pir : is_principal_ideal_ring(R))
+-- class discrete_valuation_ring [comm_ring R] : Prop :=
+--     (int_domain : is_integral_domain(R))
+--     (unique_nonzero_prime : ∃ Q : ideal R,
+--     Q ≠ ⊥ → Q.is_prime →  (∀ P : ideal R, P.is_prime → P = ⊥ ∨ P = Q)
+--     )
+--     (is_pir : is_principal_ideal_ring(R))
+instance local_id_is_id [integral_domain R'] (S : submonoid R') (zero_non_mem : ((0 : R') ∉  S)) {f : localization_map S (localization S)} : integral_domain (localization S) :=
 
-class dedekind_dvr [integral_domain R] : Prop :=
+-- I think making the following instance is *not* the right way forward.
+-- instance (P : ideal R) (hp1 : P ≠ ⊥) (hp2 : P.is_prime) : discrete_valuation_ring (localization.at_prime P) := 
+
+class dedekind_dvr [integral_domain R] [discrete_valuation_ring R] : Prop :=
     (noetherian : is_noetherian_ring R)
     (local_dvr_nonzero_prime : ∀ P : ideal R,
-    P ≠ ⊥ → P.is_prime → discrete_valuation_ring(localization.at_prime(P)))
+    P ≠ ⊥ → P.is_prime → discrete_valuation_ring (localization.at_prime P))
 /-
 Def 3: every nonzero fractional ideal is invertible.
 
