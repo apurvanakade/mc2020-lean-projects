@@ -41,9 +41,11 @@ instance local_id_is_id [integral_domain R'] (S : submonoid R') (zero_non_mem : 
 -- instance (P : ideal R) (hp1 : P ≠ ⊥) (hp2 : P.is_prime) : discrete_valuation_ring (localization.at_prime P) := 
 
 class dedekind_dvr [integral_domain R] [discrete_valuation_ring R] : Prop :=
-    (noetherian : is_noetherian_ring R)
-    (local_dvr_nonzero_prime : ∀ P : ideal R,
-    P ≠ ⊥ → P.is_prime → discrete_valuation_ring (localization.at_prime P))
+(noetherian : is_noetherian_ring R)
+(local_dvr_nonzero_prime : ∀ P : ideal R, P ≠ ⊥ → P.is_prime → 
+  @discrete_valuation_ring 
+    (localization.at_prime P)
+    (by { sorry }))
 /-
 Def 3: every nonzero fractional ideal is invertible.
 
