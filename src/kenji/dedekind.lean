@@ -126,10 +126,16 @@ begin
   --this is very hacky, might be able to use above let f : ideal R' → _ expression
   have f := localization.of (ideal.prime_compl P),
   letI := local_at_prime_of_id_is_id(R')(P)(hp_prime),
-  refine (discrete_valuation_ring.iff_PID_with_one_nonzero_prime (localization.at_prime P)).mpr _,
-  split,
-  tactic.swap,
-  
+  rw (discrete_valuation_ring.iff_PID_with_one_nonzero_prime (localization.at_prime P)),
+  split, tactic.swap,
+  {
+    have p' := local_ring.maximal_ideal(localization.at_prime P),
+    have hp' := local_ring.maximal_ideal.is_maximal(localization.at_prime P),
+    split,
+    refine ⟨_, _⟩,
+    
+    repeat {sorry},
+  },
 
   repeat {sorry},
 end
