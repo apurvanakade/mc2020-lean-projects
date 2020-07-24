@@ -35,12 +35,13 @@ it is an integral domain and is a PIR and has one non-zero maximal ideal.
 --     Q ≠ ⊥ → Q.is_prime →  (∀ P : ideal R, P.is_prime → P = ⊥ ∨ P = Q)
 --     )
 --     (is_pir : is_principal_ideal_ring(R))
-instance local_id_is_id [integral_domain R'] (S : submonoid R') (zero_non_mem : ((0 : R') ∉  S)) {f : localization_map S (localization S)} : integral_domain (localization S) :=
+lemma local_id_is_id [integral_domain R'] (S : submonoid R') (zero_non_mem : ((0 : R') ∉  S)) {f : localization_map S (localization S)} : 
+  integral_domain (localization S) := sorry
 
 -- I think making the following instance is *not* the right way forward.
 -- instance (P : ideal R) (hp1 : P ≠ ⊥) (hp2 : P.is_prime) : discrete_valuation_ring (localization.at_prime P) := 
 
-class dedekind_dvr [integral_domain R] [discrete_valuation_ring R] : Prop :=
+class dedekind_dvr [integral_domain R] : Prop :=
 (noetherian : is_noetherian_ring R)
 (local_dvr_nonzero_prime : ∀ P : ideal R, P ≠ ⊥ → P.is_prime → 
   @discrete_valuation_ring 
