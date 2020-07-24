@@ -125,11 +125,10 @@ begin
   letI := hp_prime,
   --this is very hacky, might be able to use above let f : ideal R' → _ expression
   have f := localization.of (ideal.prime_compl P),
-  letI := local_at_prime_of_id_is_id(R')(P)(hp_prime),
-  refine (discrete_valuation_ring.iff_PID_with_one_nonzero_prime (localization.at_prime P)).mpr _,
+  letI := local_at_prime_of_id_is_id R' P hp_prime,
+  rw discrete_valuation_ring.iff_PID_with_one_nonzero_prime,
   split,
-  tactic.swap,
-  
+  swap,
 
   repeat {sorry},
 end
