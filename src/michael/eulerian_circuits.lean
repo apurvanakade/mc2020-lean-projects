@@ -174,10 +174,9 @@ begin
   -- I think we need induction on the number of edges?
   -- I don't think induction is possible here because the inductive hypothesis give us zero info
   -- Maybe just expanding definitions?
-  delta degree, delta crossed,
-  refine congr_fun _, ext a,
-  cases h with t m,
-
+  delta degree, unfold crossed,
+  refine congr_fun _, ext a, congr,
+  
   sorry,
 end
 

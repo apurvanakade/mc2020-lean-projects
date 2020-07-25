@@ -104,8 +104,7 @@ begin
   -- the previous line is easily found with `suggest`
   intros P hp_nonzero hp_prime,
   letI := hp_prime,
-  --this is very hacky, might be able to use above let f : ideal R' → _ expression
-  have f : localization_map.at_prime(localization.at_prime P)(P),  sorry,
+  have f := localization.of (ideal.prime_compl P),
   split,
   {
     suffices zero_non_mem : (0 : R') ∉ P.prime_compl,
