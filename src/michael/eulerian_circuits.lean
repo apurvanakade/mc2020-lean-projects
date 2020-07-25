@@ -45,7 +45,14 @@ by rintro ⟨⟩
 @[simp] lemma path.mem_cons {x s t u v: V} (e : G.adj x s) (h : G.adj u v) (p : G.path s t) :
  G.mem h (e :: p) ↔ u = x ∧ v = s ∨ G.mem h p :=
 begin
-  sorry
+  split,
+  intro m, 
+  by_cases eq : u = x ∧ v = s,
+  {left, exact eq},
+  right,
+  push_neg at eq,
+  induction m with d hd,
+  sorry,
 end
 
 -- no edges contained in the nil path
