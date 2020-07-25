@@ -174,9 +174,12 @@ begin
   -- I think we need induction on the number of edges?
   -- I don't think induction is possible here because the inductive hypothesis give us zero info
   -- Maybe just expanding definitions?
-  delta degree, unfold crossed,
+  unfold degree crossed,
   refine congr_fun _, ext a, congr,
-  
+  ext, simp only [true_and, mem_filter, neighbor_iff_adjacent, mem_univ], 
+  rw [set.set_of_app_iff, edge_symm], 
+  split_ifs with h1, swap, { tauto },
+  suffices : G.mem h1 p, { simpa [h1] },
   sorry,
 end
 
