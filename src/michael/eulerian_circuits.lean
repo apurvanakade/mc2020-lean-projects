@@ -14,23 +14,8 @@ open graph finset
 def KonigsbergBridges : multigraph (fin 4) :=
 multigraph_of_edges [(0,1), (0,2), (0,3), (1,2), (1,2), (2,3), (2,3)]
 
--- def KonigsbergBridgesProblem : Prop :=
--- ¬ is_Eulerian KonigsbergBridges
-
 open simple_graph
 namespace simple_graph
-
--- namespace graph
--- include G
--- def degree (v : V) : ℕ := 
--- begin
---   have nbrs := neighbours G v,
---   have x : nbrs.finite,
---   exact set.finite.of_fintype(nbrs),
---   have fin_nbrs := set.finite.to_finset x,
---   exact fin_nbrs.card,
--- end
--- degree for undirected graphs
 
 def crossed (v : V) {x y : V} (p : G.path x y) : ℕ :=
 finset.card $ finset.filter {w : V | if h : G.adj w v then G.mem h p else false } univ
@@ -51,7 +36,7 @@ begin
   {left, exact eq},
   right,
   push_neg at eq,
-  induction m with d hd,
+  sorry,
   sorry,
 end
 
@@ -210,8 +195,21 @@ begin
     }},
   intro h, simp only [mem_insert, card_eq_zero, mem_singleton] at h, 
   -- I think we need induction on the number of edges?
+  
   sorry,
 end
 -- iff the number of vertices of odd degree is 0 or 2
+
+def KonigsbergBridge : simple_graph (fin 4) := 
+begin
+  sorry,
+end
+
+
+theorem KonigsbergBridgesProblem : ¬ has_eulerian_path KonigsbergBridge :=
+begin
+  sorry,
+end
+
 
 end simple_graph
