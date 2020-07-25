@@ -180,7 +180,8 @@ begin
   rw [set.set_of_app_iff, edge_symm], 
   split_ifs with h1, swap, { tauto },
   suffices : G.mem h1 p, { simpa [h1] },
-  sorry,
+  cases h with t m,
+  tauto,
 end
 
 lemma has_eulerian_path_iff : 
