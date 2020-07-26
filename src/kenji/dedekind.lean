@@ -15,13 +15,6 @@ structure is_integrally_closed_in : Prop :=
 
 def is_integrally_closed_domain : Prop := ∀ {r s : R}, s ≠ 0 → (∃ (n : ℕ) (f : ℕ → R) (hf : f 0 = 1),
     ∑ ij in finset.nat.antidiagonal n, f ij.1 * r ^ ij.2 * s ^ ij.1 = 0) → s ∣ r
-/-!
-Def 1: integral domain, noetherian, integrally closed, nonzero prime ideals are maximal
--/
-class dedekind_id [integral_domain R] : Prop := 
-    (noetherian : is_noetherian_ring R)
-    (int_closed : is_integrally_closed_domain R)
-    (max_nonzero_primes : ∀ P ≠ (⊥ : ideal R), P.is_prime → P.is_maximal)
 
 /-!
 Any nontrivial localization of an integral domain results in an integral domain.
@@ -67,7 +60,7 @@ end
 /-!
 The localization of an integral domain at a prime ideal is an integral domain.
 -/
-theorem local_at_prime_of_id_is_id (P : ideal R') (hp_prime : P.is_prime) : 
+lemma local_at_prime_of_id_is_id (P : ideal R') (hp_prime : P.is_prime) : 
   integral_domain (localization.at_prime P) :=
 begin
   have zero_non_mem : (0 : R') ∉ P.prime_compl,
@@ -87,6 +80,14 @@ Chopping block:
 --     (is_pir : is_principal_ideal_ring(R))
 -/
 
+
+/-!
+Def 1: integral domain, noetherian, integrally closed, nonzero prime ideals are maximal
+-/
+class dedekind_id [integral_domain R] : Prop := 
+    (noetherian : is_noetherian_ring R)
+    (int_closed : is_integrally_closed_domain R)
+    (max_nonzero_primes : ∀ P ≠ (⊥ : ideal R), P.is_prime → P.is_maximal)
 /-
 Def 2: noetherian ring,
 localization at each nonzero prime ideals is a DVR.
@@ -111,15 +112,11 @@ such that IJ=R.
 class dedekind_inv [integral_domain R'] (f : localization_map (non_zero_divisors R') $ localization (non_zero_divisors R')) : Prop :=
   (inv_ideals : ∀ I : ring.fractional_ideal f, (∃ t : I, t ≠ 0) → (∃ J : ring.fractional_ideal f, I * J = 1))
 
-/-
-TODO: Abstract a lot of the nontrivial proofs.
--/
 
 lemma dedekind_id_imp_dedekind_dvr [dedekind_id R'] : dedekind_dvr R' :=
 begin
   refine {noetherian := dedekind_id.noetherian, local_dvr_nonzero_prime := _},
   intros P hp_nonzero hp_prime, letI := hp_prime,
-  --this is very hacky, might be able to use above let f : ideal R' → _ expression
   have f := localization.of (ideal.prime_compl P),
   letI := local_at_prime_of_id_is_id R' P hp_prime,
   rw discrete_valuation_ring.iff_PID_with_one_nonzero_prime (localization.at_prime P),
@@ -160,4 +157,42 @@ by {letI := dedekind_inv_imp_dedekind_id R', exact dedekind_id_imp_dedekind_dvr 
 lemma dedekind_dvr_imp_dedekind_id (f : fraction_map R' $ localization (non_zero_divisors R')) [dedekind_dvr R'] : dedekind_id R' :=
 by {letI := dedekind_dvr_imp_dedekind_inv R', exact dedekind_inv_imp_dedekind_id R' f,}
 
+/-
+Time to break a lot of things !
 
+
+probably morally correct: fractional ideals have prime factorization !
+(→ regular ideals have prime factorization)
+
+
+
+-/
+
+
+/-
+This theorem probably isn't in mathlib. (maybe check Noetherian)
+All ideals are either prime or composite in a (sharper conditions) dedekind domain.
+This statement is only interesting when we consider maximal ideals.
+
+Recall: An ideal is maximal if the only ideal that contains it is (1) = R.
+An ideal is prime if whenever ab ∈ P, then at least one of a,b is in P, and P ≠ R.
+
+
+Some interesting things to remember:
+
+
+-/
+--this might be dumb and unncessary
+theorem prime_or_composite [dedekind_id R'] : ∀ (I : ideal R'), (I.is_prime ∨ ( ∃ (J : ideal R'), J ∣ I ∧ J ≠ I)) :=
+begin
+  intro I,
+  
+  sorry,
+end
+
+-- need to check lengths are equal and then do product !
+-- this finsets are probably the wrong way.
+theorem ideal_prime_factorization [dedekind_id R'] (I : ideal R') : ∃ (pset : finset $ ideal R'), ∃(powset : finset $ ℕ ), (finset.card pset = finset.card powset) ∧ (∀(P ∈  pset), ideal.is_prime(P)) ∧ false :=
+begin
+  sorry,  
+end
