@@ -168,31 +168,106 @@ probably morally correct: fractional ideals have prime factorization !
 
 -/
 
+--Noetherian iff Every non-empty set S of ideals has a maximal member.
+open_locale classical
 
 /-
-This theorem probably isn't in mathlib. (maybe check Noetherian)
-All ideals are either prime or composite in a (sharper conditions) dedekind domain.
-This statement is only interesting when we consider maximal ideals.
+Currently mathlib has the following two characteristics of Noetherian modules
+(i) - Every ascending chain of ideals is eventually constant i.e. I_1 ⊂ I_2 ⊂ I_3 ⊂ … ⊂ I_n ⊂ I_{n+1} = I_n
+(ii) - Every ideal is finitely generated
+This is the third that mathlib does not have (pertaining to rings, perhaps to modules(?)):
+(iii) - Every non-empty set S of ideals has a maximal member. i.e. if M ⊂ I, then I = R ∨ I = M
+Proof of equivalence: by mathlib (i) ↔ (ii).
+(ii → iii) - Start off with any ideal in S, then two cases: it is contained in another ideal (we induct)
+or it is not (it is maximal and we terminate), but since eventually the first case becomes constant, we are done.
 
-Recall: An ideal is maximal if the only ideal that contains it is (1) = R.
-An ideal is prime if whenever ab ∈ P, then at least one of a,b is in P, and P ≠ R.
-
-
-Some interesting things to remember:
-
-
+(iii → i) - Start off with a finitely generated subideal of I with only 1 generator, call it I_1
+Now, add another generator, and observe that I_1 ⊂ I_2, and continue
+I_1 ⊂ I_2 ⊂ I_3 ⊂ … and this chain must have a maximal ideal, and so eventually we must come to
+a point such that I_{n-1} ⊂ I_n = I_{n+1}.
 -/
---this might be dumb and unncessary
-theorem prime_or_composite [dedekind_id R'] : ∀ (I : ideal R'), (I.is_prime ∨ ( ∃ (J : ideal R'), J ∣ I ∧ J ≠ I)) :=
+lemma set_has_maximal [ring R'] (a : set $ ideal R') (set_nonempty : a.nonempty) : ∃ (M ∈ a), ideal.is_maximal(M) :=
 begin
-  intro I,
-  
   sorry,
 end
 
--- need to check lengths are equal and then do product !
--- this finsets are probably the wrong way.
-theorem ideal_prime_factorization [dedekind_id R'] (I : ideal R') : ∃ (pset : finset $ ideal R'), ∃(powset : finset $ ℕ ), (finset.card pset = finset.card powset) ∧ (∀(P ∈  pset), ideal.is_prime(P)) ∧ false :=
+namespace dedekind
+
+
+/-
+Suppose not, then the set of ideals that are not divisible by primes is nonempty, and by set_has_maximal
+must have a maximal element M.
+Since M is not prime, ∃ (r,s : R-M) such that rs ∈ M.
+Since r ∉ M, M+(r) > M, and since M is maximal, M+(r) and M+(s) must be divisible by some prime.
+Now observe that (M+(r))(M+(s)) is divisible by some primes, but M*M ⊂ M, rM ⊂ M, sM ⊂ M, and rs ⊂ M, so
+this is contained in M, but this is a contradiction.
+-/
+lemma ideal_contains_prime_product [dedekind_id R'] : ∀ (I : ideal R'), ∃ (P : ideal R'), P.is_prime ∧ (P∣I) :=
+begin
+  by_contradiction hyp,
+  push_neg at hyp,
+  have A := {J : ideal R' |  ∀ (P : ideal R'), P.is_prime → ¬ P ∣ J}, 
+  have key : A.nonempty,
+  cases hyp with I Ikey,
+  use I,
+  --lean fails HERE for some odd reason
+  --rw set.mem_set_of_eq,
+  repeat {sorry},
+end
+/-
+For any proper ideal I, there exists an element, γ,  in K (the field of fractions of R) such that 
+γ I ⊂ R.
+Proof: This is really annoying.
+Pick some a ∈ I, then (a) contains a product of primes, and fix P_1, … such that
+P_1…P_r ⊂ (a), etc.
+
+broken, not sure how to state it.
+
+lemma frac_mul_ideal_contains_ring [dedekind_id R'] (I : ideal R') (h_nonzero : I ≠ ⊥) (h_nontop : I ≠ ⊤ ) : ∃ (γ : fraction_ring R'), γI ⊂ R :=
+begin
+  sorry,
+end
+
+-/
+
+/-
+For any ideal I, there exists J such that IJ is principal.
+proof:
+Let 0 ≠ α ∈ I, and let J = { β ∈ R : β I ⊂ (α )}.
+We can see that J is an ideal.
+and we have that IJ ⊂ (α).
+Since IJ ⊂ (α), we have that A = IJ/α is an ideal of R.
+
+If A = R, then IJ = (α) and we are done,
+otherwise, A is a proper ideal, and we can use frac_mul_ideal_contains_ring
+to have a γ ∈ K-R such that γ A ⊂ R. Since R is integrally closed,
+it suffices to show that γ is a root of a monic polynomial over R.
+
+We have that J ⊂ A, as α ∈ I. so γ J ⊂ γ A ⊂ R.
+We make the observation that γ J ⊂ J. (rest is sketchy and annoying)
+
+Need to refine conditions (mainly non-zero).
+-/
+lemma exists_ideal_prod_principal [dedekind_id R'](I : ideal R') : ∃ (J : ideal R'), (I * J).is_principal :=
+begin
+  sorry,
+end
+
+lemma mul_right_inj [dedekind_id R'] (A B C : ideal R') (A ≠ ⊥ ) : A * B = A * C ↔ B=C :=
+begin
+  symmetry,
+  split,
+  {intro, rw a,},
+  cases exists_ideal_prod_principal(R')(A) with J Jkey,
+  intro ab_eq_ac,
+  have : J * A * B = J * A  * C,
+  {rw [mul_assoc, ab_eq_ac,mul_assoc],},
+  sorry,
+end
+
+--This is likely not formulated in a useful way, a list might be better, also placeholders are bad
+lemma ideal_prime_factorization [dedekind_id R'] (I : ideal R') : ∃ (pset : finset $ ideal R'), ∃(powset : finset $ ℕ ), (finset.card pset = finset.card powset) ∧ (∀(P ∈  pset), ideal.is_prime(P)) ∧ false :=
 begin
   sorry,  
 end
+end dedekind
