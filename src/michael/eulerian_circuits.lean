@@ -147,7 +147,7 @@ begin
   -- Maybe just expanding definitions?
   unfold degree crossed,
   refine congr_fun _, ext a, congr,
-  ext, simp only [true_and, mem_filter, neighbor_iff_adjacent, mem_univ], 
+  ext, simp only [true_and, mem_filter, mem_univ, mem_neighbor_finset],
   rw [set.set_of_app_iff, edge_symm], 
   split_ifs with h1, swap, { tauto },
   suffices : G.mem h1 p, { simpa [h1] },

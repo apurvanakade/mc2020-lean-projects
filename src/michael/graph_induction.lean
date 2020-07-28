@@ -1,16 +1,22 @@
 import michael.simple_graph
 
+noncomputable theory
+open_locale classical
+
 universes u
-variables {V : Type u} [fintype V]
+variables {V : Type u} [fintype V] 
 namespace simple_graph
 
-def empty_graph : simple_graph V := sorry
+def empty_graph : simple_graph V := 
+{ adj := λ _ _, false}
 
-variables (G : simple_graph V)
+def is_subgraph (H : simple_graph V) (G : simple_graph V)  : Prop := 
+∀ u v, H.adj u v → G.adj u v
+
+variables (G : simple_graph V) 
 include G
-def is_subgraph (H : simple_graph V) : Prop := sorry
 
-def card_edges : ℕ := sorry
+def card_edges : ℕ := fintype.card G.E
 
 lemma card_edges_eq_zero_iff : 
   G.card_edges = 0 ↔ G = empty_graph :=
@@ -19,25 +25,34 @@ begin
 end
 
 lemma induction_on 
-  (G : simple_graph V) 
   (P : simple_graph V → Prop)
   (P_empty : P empty_graph)
   (P_inductive : ∀ G, G ≠ empty_graph → ∃ (H : simple_graph V), 
     H.is_subgraph G ∧ 
     H.card_edges < G.card_edges ∧
-    (P H → P G) )
-  :
-  P G
-  := sorry
+    (P H → P G) ) :
+P G
+  := 
+begin
+  sorry
+end
 -- for every graph, there exists an edge so that P (G.erase e) → P G
 
-def erase (e : G.E) : simple_graph V := sorry
+def erase (e : G.E) : simple_graph V := 
+{ adj := λ u v, if u ∈ e ∧ v ∈ e then false else G.adj u v,
+  sym := by { unfold symmetric, intros, simp_rw [edge_symm, and_comm], cc } }
 
-lemma erase_is_subgraph (e : G.E) : (G.erase e).is_subgraph G :=
-sorry
+@[simp] lemma erase_adj_iff (e : G.E) (u v : V) : 
+  (G.erase e).adj u v ↔ G.adj u v ∧ (u ∉ e ∨ v ∉ e) :=
+by { simp [erase]; tauto, }
+
+lemma erase_is_subgraph (e : G.E) : (G.erase e).is_subgraph G := by tidy
 -- writing this down in a way that avoids nat subtraction
+-- #check 
 lemma card_edges_erase (e : G.E) : (G.erase e).card_edges + 1 = G.card_edges :=
-sorry
+begin
+  sorry
+end
 
 lemma induction_on_erase
   (P : simple_graph V → Prop)
