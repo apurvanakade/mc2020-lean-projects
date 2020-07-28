@@ -1,7 +1,6 @@
-import .basic
 import data.nat.parity
 import data.finset
-import .simple_graph
+import .path
 import tactic
 
 noncomputable theory
@@ -9,36 +8,16 @@ open_locale classical
 
 universes u
 variables {V : Type u} [fintype V] (G : simple_graph V)
-open graph finset
-
-def KonigsbergBridges : multigraph (fin 4) :=
-multigraph_of_edges [(0,1), (0,2), (0,3), (1,2), (1,2), (2,3), (2,3)]
+open finset
 
 open simple_graph
 namespace simple_graph
 
+/-- number of times v is in an edge in path x y -/
 def crossed (v : V) {x y : V} (p : G.path x y) : ℕ :=
 finset.card $ finset.filter {w : V | if h : G.adj w v then G.mem h p else false } univ
 
--- number of times v is in an edge in path x y
-
 def has_eulerian_path : Prop := ∃ x y : V, ∃ p : G.path x y, G.is_Eulerian p
-
-lemma no_edge_in_nil {d x y : V} (h : G.adj x y) : ¬ G.mem h (path.nil d) :=
-by rintro ⟨⟩
-
-@[simp] lemma path.mem_cons {x s t u v: V} (e : G.adj x s) (h : G.adj u v) (p : G.path s t) :
- G.mem h (e :: p) ↔ u = x ∧ v = s ∨ G.mem h p :=
-begin
-  split,
-  intro m, 
-  by_cases eq : u = x ∧ v = s,
-  {left, exact eq},
-  right,
-  push_neg at eq,
-  sorry,
-  sorry,
-end
 
 -- no edges contained in the nil path
 lemma crossed_add_edge {x y z : V} (e : G.adj x y) (p : G.path y z) (w : V) :
@@ -168,7 +147,7 @@ begin
   -- Maybe just expanding definitions?
   unfold degree crossed,
   refine congr_fun _, ext a, congr,
-  ext, simp only [true_and, mem_filter, neighbor_iff_adjacent, mem_univ], 
+  ext, simp only [true_and, mem_filter, mem_univ, mem_neighbor_finset],
   rw [set.set_of_app_iff, edge_symm], 
   split_ifs with h1, swap, { tauto },
   suffices : G.mem h1 p, { simpa [h1] },
