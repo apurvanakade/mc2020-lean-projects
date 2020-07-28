@@ -125,7 +125,8 @@ begin
     have p' := local_ring.maximal_ideal (localization.at_prime P),
     have hp' := local_ring.maximal_ideal.is_maximal (localization.at_prime P),
     split,
-    refine ⟨_, _⟩,
+    split,
+    --lambdas HERE
     
     repeat {sorry},
   },
@@ -280,7 +281,7 @@ begin
   have h1 := ideal.span_eq_bot.2,
   have h2 := h1 a,
   rw ← h2,
-  --lambdas make me sad
+  --lambdas HERE
   sorry,
 end
 
