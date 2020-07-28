@@ -19,22 +19,6 @@ finset.card $ finset.filter {w : V | if h : G.adj w v then G.mem h p else false 
 
 def has_eulerian_path : Prop := ∃ x y : V, ∃ p : G.path x y, G.is_Eulerian p
 
-lemma no_edge_in_nil {d x y : V} (h : G.adj x y) : ¬ G.mem h (path.nil d) :=
-by rintro ⟨⟩
-
-@[simp] lemma path.mem_cons {x s t u v: V} (e : G.adj x s) (h : G.adj u v) (p : G.path s t) :
- G.mem h (e :: p) ↔ u = x ∧ v = s ∨ G.mem h p :=
-begin
-  split,
-  intro m, 
-  by_cases eq : u = x ∧ v = s,
-  {left, exact eq},
-  right,
-  push_neg at eq,
-  sorry,
-  sorry,
-end
-
 -- no edges contained in the nil path
 lemma crossed_add_edge {x y z : V} (e : G.adj x y) (p : G.path y z) (w : V) :
 (w = x ∨ w = y) → ( G.crossed w (e :: p) = G.crossed w p + 1) :=
