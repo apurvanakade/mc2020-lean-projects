@@ -1,7 +1,6 @@
-import .basic
 import data.nat.parity
 import data.finset
-import .simple_graph
+import .path
 import tactic
 
 noncomputable theory
@@ -9,18 +8,14 @@ open_locale classical
 
 universes u
 variables {V : Type u} [fintype V] (G : simple_graph V)
-open graph finset
-
-def KonigsbergBridges : multigraph (fin 4) :=
-multigraph_of_edges [(0,1), (0,2), (0,3), (1,2), (1,2), (2,3), (2,3)]
+open finset
 
 open simple_graph
 namespace simple_graph
 
+/-- number of times v is in an edge in path x y -/
 def crossed (v : V) {x y : V} (p : G.path x y) : ℕ :=
 finset.card $ finset.filter {w : V | if h : G.adj w v then G.mem h p else false } univ
-
--- number of times v is in an edge in path x y
 
 def has_eulerian_path : Prop := ∃ x y : V, ∃ p : G.path x y, G.is_Eulerian p
 
