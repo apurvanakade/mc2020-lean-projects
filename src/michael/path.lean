@@ -8,7 +8,6 @@ universes u
 variables {V : Type u}
 
 section list
-#check list.nth_le_zero 
 
 @[simp] lemma list.cons_nth_le_succ
   {α : Type*} {hd : α} (tl : list α) 
@@ -43,7 +42,14 @@ namespace path
 variables {G} 
 variables (p : G.path)
 
-/-- The ordered list of all vertices in p, starting at p.head. -/
+section classical
+open_locale classical
+/-- The last vertex in p. -/
+noncomputable def last : V := if h : p.tail = list.nil then p.head else p.tail.last h
+
+end classical
+
+/-- The ordered list of all vertices in p, starting at p.head and ending at p.sink. -/
 def vertices : list V := p.head :: p.tail 
 
 /-- The number of edges in p. -/
@@ -107,6 +113,10 @@ by refl
   (p.cons e hs hv).length = p.length + 1 :=
 by { unfold cons length, simp [vertices] }
 
+@[simp] lemma cons_vertices {v : V} (e : G.E) (hs : p.head ∈ e) (hv : v ∈ e) : 
+  (p.cons e hs hv).vertices = list.cons v p.vertices :=
+by { dsimp [vertices, cons], simp }
+
 lemma edges_eq_nil_iff : p.edges = list.nil ↔ p.tail = list.nil :=
 by rw [← list.length_eq_zero, p.length_eq, list.length_eq_zero]
 
@@ -163,6 +173,9 @@ begin
   intro, apply P_inductive, apply hk, simp at a, omega,
 end
 
+/-- p.is_cycle if p starts and ends in the same place. -/
+def is_cycle : Prop := p.head = p.last
+
 /-- p.is_trail if p has no repeated edges. -/
 def is_trail : Prop := list.nodup p.edges
 
@@ -172,3 +185,4 @@ def is_Eulerian : Prop := ∀ e : G.E, p.edge_mem e
 end path
 
 end simple_graph
+#lint-

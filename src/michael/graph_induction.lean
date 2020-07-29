@@ -55,7 +55,6 @@ by { simp [erase]; tauto, }
 
 lemma erase_is_subgraph (e : G.E) : (G.erase e).is_subgraph G := by tidy
 -- writing this down in a way that avoids nat subtraction
--- #check 
 lemma card_edges_erase (e : G.E) : (G.erase e).card_edges + 1 = G.card_edges :=
 begin
   sorry
