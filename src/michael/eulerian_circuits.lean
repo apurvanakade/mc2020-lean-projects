@@ -14,8 +14,8 @@ open simple_graph
 namespace simple_graph
 
 /-- number of times v is in an edge in path x y -/
-def crossed (v : V) {x y : V} (p : G.path x y) : ℕ :=
-finset.card $ finset.filter {w : V | if h : G.adj w v then G.mem h p else false } univ
+def crossed (v : V) {x y : V} (p : G.path) : ℕ :=
+p.vertices.count v
 
 def has_eulerian_path : Prop := ∃ x y : V, ∃ p : G.path x y, G.is_Eulerian p
 

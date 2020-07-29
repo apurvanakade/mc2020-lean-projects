@@ -147,16 +147,16 @@ section classical
 open_locale classical
 noncomputable def E_finset [fintype V] (G : simple_graph V) : finset $ V × V :=
 finset.filter (λ x, G.adj x.1 x.2) univ
-#check finset_coe.fintype
-lemma E_finset_spec [decidable_eq V] [fintype V] [decidable_rel G.adj] : 
-fintype.card G.E = finset.card G.E_finset := 
-begin
-  transitivity fintype.card _, 
-  rotate 2, { apply finset_coe.fintype, exact G.E_finset }, { apply fintype.card_coe },
-  rw fintype.card_eq, refine nonempty.intro _,
-  refine equiv.of_bijective _ _,
-  intro,
-end
+
+-- lemma E_finset_spec [decidable_eq V] [fintype V] [decidable_rel G.adj] : 
+-- fintype.card G.E = finset.card G.E_finset := 
+-- begin
+--   transitivity fintype.card _, 
+--   rotate 2, { apply finset_coe.fintype, exact G.E_finset }, { apply fintype.card_coe },
+--   rw fintype.card_eq, refine nonempty.intro _,
+--   refine equiv.of_bijective _ _,
+--   intro,
+-- end
 
 end classical
 

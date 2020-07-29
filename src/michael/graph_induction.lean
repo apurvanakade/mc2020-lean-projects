@@ -7,7 +7,7 @@ universes u
 variables {V : Type u} [fintype V] 
 namespace simple_graph
 
-def empty_graph : simple_graph V := 
+def empty : simple_graph V := 
 { adj := λ _ _, false}
 
 def is_subgraph (H : simple_graph V) (G : simple_graph V)  : Prop := 
@@ -16,25 +16,32 @@ def is_subgraph (H : simple_graph V) (G : simple_graph V)  : Prop :=
 variables (G : simple_graph V) 
 include G
 
+@[refl] lemma is_subgraph_self : G.is_subgraph G := by tidy
+
 def card_edges : ℕ := fintype.card G.E
 
 lemma card_edges_eq_zero_iff : 
-  G.card_edges = 0 ↔ G = empty_graph :=
+  G.card_edges = 0 ↔ G = empty :=
 begin
   sorry
 end
 
 lemma induction_on 
   (P : simple_graph V → Prop)
-  (P_empty : P empty_graph)
-  (P_inductive : ∀ G, G ≠ empty_graph → ∃ (H : simple_graph V), 
+  (P_empty : P empty)
+  (P_inductive : ∀ G ≠ empty, ∃ (H : simple_graph V), 
     H.is_subgraph G ∧ 
     H.card_edges < G.card_edges ∧
-    (P H → P G) ) :
-P G
-  := 
+    (P H → P G) ) : P G := 
 begin
-  sorry
+  by_cases h : G = empty, { rwa h },
+  suffices : ∀ H : simple_graph V, H.card_edges < G.card_edges → P H, 
+  { have := P_inductive G h, tauto },
+  induction G.card_edges using nat.strong_induction_on with k hk,
+  intros H hHk, 
+  by_cases H_card : H = empty, { cc }, 
+  rcases P_inductive H H_card with ⟨K, K_sub, K_card, hKH⟩,
+  apply hKH, exact hk _ hHk _ K_card,
 end
 -- for every graph, there exists an edge so that P (G.erase e) → P G
 
@@ -56,8 +63,8 @@ end
 
 lemma induction_on_erase
   (P : simple_graph V → Prop)
-  (P_empty : P empty_graph)
-  (P_inductive : ∀ G : simple_graph V, G ≠ empty_graph → 
+  (P_empty : P empty)
+  (P_inductive : ∀ G : simple_graph V, G ≠ empty → 
     ∃ e : G.E, P (G.erase e) → P G)
   : P G := 
 begin
