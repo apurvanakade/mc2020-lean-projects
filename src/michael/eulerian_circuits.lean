@@ -95,11 +95,12 @@ begin
         },
       { apply_instance } },
     { right,
-      have : finset.card {p.head, p.tail} = 2, { rw [card_insert_of_not_mem, card_singleton], rwa mem_singleton,
-        
-      },
-    }
-  },
+      have : finset.card {p.head, p.last} = 2, { rw [card_insert_of_not_mem, card_singleton], rwa mem_singleton },
+      convert this, ext,
+      suffices : ¬(G.degree a).even ↔ a = p.head ∨ a = p.last, convert this; { simp; refl },
+      have deg_cross := degree_eq_crossed a p e, rw [deg_cross, path_crossed], simp [h]; tauto,
+    }},
+  
   
   
   -- { rintro ⟨x, y, p, hep⟩,
