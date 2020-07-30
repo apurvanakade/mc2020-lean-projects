@@ -25,14 +25,16 @@ def has_eulerian_path : Prop := ∃ p : G.path, p.is_Eulerian
 variables {G}
 
 -- no edges contained in the nil path
-lemma crossed_cons {s v : V} (e : G.E) (p : G.path) (w : V) (hp : p.head ∈ e) (hs : s ∈ e):
-(p.cons e hp hs).crossed v = p.crossed v + if v = s ∨ v = p.head then 1 else 0 :=
+lemma crossed_cons {s v : V} (e : G.E) (p : G.path) (w : V) (hp : p.head ∈ e) (hs : s ∈ e) (hsv):
+(p.cons e hp hs hsv).crossed v = p.crossed v + if v = s ∨ v = p.head then 1 else 0 :=
 begin
-  -- delta path.crossed, 
   dsimp [path.crossed, path.cons],
   split_ifs with h, 
   { cases h; simp [h, hs, hp] },
-  suffices : v ∉ e, simp [this],
+  suffices : v ∉ e, { simp [this] },
+  rw e.mem_iff hs, push_neg, split, tauto,
+  contrapose! h, right, 
+  rw h, symmetry, rw e.eq_other_iff, tauto,
 end
 -- adding an edge adds 1 to crossed if the edge contains the vertex
 

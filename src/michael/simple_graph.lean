@@ -131,6 +131,14 @@ begin
   exact G.ne_of_edge key,
 end
 
+lemma E.eq_other_iff (e : G.E) {v : V} (h : v ∈ e) (u : V) : 
+ u = e.other h ↔ u ≠ v ∧ u ∈ e :=
+begin
+  split, { rintro rfl, refine ⟨ E.other_ne _ _, E.other_mem _ _⟩ },
+  rintro ⟨huv, hu⟩,
+  sorry
+end
+
 lemma E.mem_iff (e : G.E) {v : V} (h : v ∈ e) (u : V) :
   u ∈ e ↔ u = v ∨ u = e.other h :=
 begin
