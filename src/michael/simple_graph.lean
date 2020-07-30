@@ -131,6 +131,12 @@ begin
   exact G.ne_of_edge key,
 end
 
+lemma E.mem_iff (e : G.E) {v : V} (h : v ∈ e) (u : V) :
+  u ∈ e ↔ u = v ∨ u = e.other h :=
+begin
+  sorry,
+end
+
 attribute [irreducible] E.other
 variables (G)
 
@@ -140,6 +146,10 @@ instance E.inhabited [inhabited {p : V × V | G.adj p.1 p.2}] : inhabited G.E :=
   use ⟦(x, y)⟧, rwa sym2.from_rel_prop,
 end⟩
 
+#check fintype.of_equiv_card
+-- example (s t : finset V) : s.card = t.card ↔ nonempty 
+-- #find finset.card _ = finset.card _ ↔ _
+
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   fintype G.E := subtype.fintype _
 
@@ -148,15 +158,25 @@ open_locale classical
 noncomputable def E_finset [fintype V] (G : simple_graph V) : finset $ V × V :=
 finset.filter (λ x, G.adj x.1 x.2) univ
 
--- lemma E_finset_spec [decidable_eq V] [fintype V] [decidable_rel G.adj] : 
--- fintype.card G.E = finset.card G.E_finset := 
--- begin
---   transitivity fintype.card _, 
---   rotate 2, { apply finset_coe.fintype, exact G.E_finset }, { apply fintype.card_coe },
---   rw fintype.card_eq, refine nonempty.intro _,
---   refine equiv.of_bijective _ _,
---   intro,
--- end
+lemma E_finset_spec [decidable_eq V] [fintype V] [decidable_rel G.adj] : 
+2 * fintype.card G.E = finset.card G.E_finset := 
+begin
+  -- transitivity 2 * finset.card _, ring,
+  have : fintype.card (fin 2) = 2, { tidy },
+  rw [← this, ← fintype.card_prod], 
+  rw ← fintype.card_of_finset, swap, { intro, refl },
+  convert fintype.of_equiv_card _, 
+  symmetry, refine equiv.of_bijective _ _,
+  rintro ⟨⟨b, hb⟩, e⟩, 
+  { sorry },
+  { sorry },
+  -- rw eq_, 
+  -- apply finset_coe.fintype,
+  -- rotate 2, { apply finset_coe.fintype, exact G.E_finset }, { apply fintype.card_coe },
+  -- rw fintype.card_eq, refine nonempty.intro _,
+  -- refine equiv.of_bijective _ _,
+  -- intro,
+end
 
 end classical
 

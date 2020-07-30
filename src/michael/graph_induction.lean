@@ -4,7 +4,7 @@ noncomputable theory
 open_locale classical
 
 universes u
-variables {V : Type u} [fintype V] 
+variables {V : Type u}  
 namespace simple_graph
 
 def empty : simple_graph V := 
@@ -17,8 +17,22 @@ variables (G : simple_graph V)
 include G
 
 @[refl] lemma is_subgraph_self : G.is_subgraph G := by tidy
+lemma empty_is_subgraph : empty.is_subgraph G := by tidy
 
+variables [fintype V]
 def card_edges : ℕ := fintype.card G.E
+
+  -- want a lemma that 2 * card_edges equals the card of a specific finset.
+-- lemma 2 * G.card_edges = finset.card G.E_finset
+
+lemma empty_card_edges : 
+  (@empty V).card_edges = 0 :=
+begin
+  dsimp [card_edges], 
+  rw fintype.card_eq_zero_iff,
+  -- want a lemma that 2 * card_edges equals the card of a specific finset.
+  sorry
+end
 
 lemma card_edges_eq_zero_iff : 
   G.card_edges = 0 ↔ G = empty :=
