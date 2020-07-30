@@ -1,6 +1,5 @@
 import ring_theory.fractional_ideal
 import ring_theory.discrete_valuation_ring
-import linear_algebra.basic
 universes u v 
 
 variables (R : Type u) [comm_ring R] {A : Type v} [comm_ring A]
@@ -181,31 +180,10 @@ Now, add another generator, and observe that I_1 ⊂ I_2, and continue
 I_1 ⊂ I_2 ⊂ I_3 ⊂ … and this chain must have a maximal ideal, and so eventually we must come to
 a point such that I_{n-1} ⊂ I_n = I_{n+1}.
 -/
-
---this is currently false, it is maximal IN THE SET, but not necessarily in the ring
 lemma set_has_maximal [ring R'] (a : set $ ideal R') (set_nonempty : a.nonempty) : ∃ (M ∈ a), ideal.is_maximal(M) :=
 begin
   sorry,
 end
-
---ring with id is most general(?)
-lemma lt_add_nonmem [integral_domain R'] (I : ideal R') (a ∉ I) : I < I+ideal.span{a} :=
-begin
-  have blah : ∀ (x y : ideal R'), x ≤ x ⊔ y, 
-  { intros x y, simp only [le_sup_left],},
-  split, exact blah I (ideal.span{a}),
-  have blah2 : ∀ (x y z : ideal R'),  x ⊔ y ≤ z → x ≤ z → y ≤ z,
-  { intros x y z, simp only [sup_le_iff], tauto,},
-  have h : I ≤ I, exact le_refl I,
-  rw ideal.add_eq_sup,
-  intro bad,
-  have h1 := blah2 I (ideal.span{a}) I bad h,
-  have h2 : a ∈ ideal.span{a},
-  { rw ideal.mem_span_singleton', use 1, rw one_mul,},
-  have : ∀ (x ∈ ideal.span{a}), x ∈ I, simpa only [],
-  exact H (this a h2),
-end
-
 
 namespace dedekind
 
@@ -218,12 +196,8 @@ Since r ∉ M, M+(r) > M, and since M is maximal, M+(r) and M+(s) must be divisi
 Now observe that (M+(r))(M+(s)) is divisible by some primes, but M*M ⊂ M, rM ⊂ M, sM ⊂ M, and rs ⊂ M, so
 this is contained in M, but this is a contradiction.
 -/
-
---modify statement b/c don't know ∣ and ⊆ are the same yet.
 lemma ideal_contains_prime_product [dedekind_id R'] : ∀ (I : ideal R'), ∃ (P : ideal R'), P.is_prime ∧ (P∣I) :=
 begin
-  /- IMPORTANT NOTE: some things here work that work for the wrong reasons (read: ne_top)
-  -/
   by_contradiction hyp,
   push_neg at hyp,
   let A := {J : ideal R' |  ∀ (P : ideal R'), P.is_prime → ¬ P ∣ J}, 
@@ -240,45 +214,28 @@ begin
   },
   unfold ideal.is_prime at h1,
   push_neg at h1,
-  have mult := maximal, --here is bad math
-  unfold ideal.is_maximal at mult, --also bad
-  cases mult with ne_top junk, clear junk, --will need to prove ne_top a different way
+  have mult := maximal,
+  unfold ideal.is_maximal at mult,
+  cases mult with ne_top junk, clear junk,
   have h2 := h1 ne_top,
   rcases h2 with ⟨r,s,rs_in_m, r_nin_m, s_nin_m⟩,
   set ray := M + ideal.span({r}) with mr,
-  have hmr : M < ray,
-  { exact lt_add_nonmem R' M r r_nin_m,},
+  have hmr : ray > M,
+  {sorry,},
   set say := M + ideal.span({s}) with ms,
-  have hms : M < say,
-  { exact lt_add_nonmem R' M s s_nin_m,},
-  clear r_nin_m s_nin_m ne_top,
+  have hms : say > M,
+  {sorry,},
+  clear r_nin_m s_nin_m ne_top, --h1 key A hyp
   have main : ray*say ≤ M,
-  {--bashing simplifications, I think this would be a very nice simp tactic
+  {
     rw [ms,mr,left_distrib,right_distrib,right_distrib,← add_assoc],
-    repeat {rw [ideal.add_eq_sup]},
-    have blah : ∀ (x y z : ideal R'), x ≤ z → y ≤ z → x ⊔ y ≤ z, simp only [sup_le_iff], tauto,
-    have part1 : M*M ≤ M, exact ideal.mul_le_left,
-    have part2 : ideal.span{r} * M ≤ M, exact ideal.mul_le_left,
-    have part3 : M*ideal.span{s} ≤ M, exact ideal.mul_le_right,
-    have part4' : ideal.span {r} * ideal.span {s} = (ideal.span{r*s} : ideal R'),
-    { --ideal.span{r} * ideal.span{s} = ideal.span{r*s} is annoying
-      
-      sorry,
-    },
-    rw part4',
-    have part4 : ideal.span{r*s} ≤ M,
-    { rw ideal.span_le, simpa,},
-    have h1 := blah (M*M) (ideal.span{r} * M ⊔  M * ideal.span {s} ⊔  ideal.span{r*s}) M part1,
-    rw [←sup_assoc,← sup_assoc] at h1,
-    apply h1,
-    clear' h1 part1,
-    have h1 := blah (ideal.span{r} * M) (M * ideal.span{s} ⊔ ideal.span{r*s}) M part2,
-    rw [←sup_assoc] at h1,
-    apply h1, clear' h1 part2,
-    exact blah (M * ideal.span{s}) (ideal.span {r*s}) M part3 part4,
+    --basically just prove that if I_1 ≤ J and I_2 ≤ J, then I_1 + I_2 ≤ J.
+    --might be in mathlib or it might not be, hmmm.
+    
+    sorry,
   },
   have say_contains_prime : ∃ (P : ideal R'), P.is_prime ∧ say < P,
-  {--sketch: since M < say and M is maximal of the set, say is not in A, and so has prime factor
+  {
     sorry,
   },
   --there are too many variables that may or may not be needed....
@@ -318,19 +275,32 @@ it suffices to show that γ is a root of a monic polynomial over R.
 
 We have that J ⊂ A, as α ∈ I. so γ J ⊂ γ A ⊂ R.
 We make the observation that γ J ⊂ J. (rest is sketchy and annoying)
-
-Need to refine conditions (mainly non-zero).
 -/
 lemma exists_ideal_prod_principal [dedekind_id R'](I : ideal R') : ∃ (J : ideal R'), (I * J).is_principal ∧ (J ≠ ⊥ ) :=
 begin
   sorry,
 end
 
-
---this seems true, should check!
 lemma ideal_mul_eq_zero [integral_domain R'] {I J : ideal R'} : (I * J = ⊥) ↔ I = ⊥ ∨ J = ⊥ :=
 begin
-  sorry,
+  have hJ : inhabited J, by exact submodule.inhabited J,
+  have j := inhabited.default J, clear hJ,
+  split, swap,
+  {intros, 
+  cases a,
+  {rw [←ideal.mul_bot J, a, ideal.mul_comm],},
+  {rw [←ideal.mul_bot I, a, ideal.mul_comm],},},
+  intro hij,
+  by_cases J = ⊥,
+  tauto,
+  left,
+  rw submodule.eq_bot_iff,
+  intros i hi,
+  rcases J.ne_bot_iff.1 h with ⟨j', hj, ne0⟩,
+  rw submodule.eq_bot_iff at hij,
+  specialize hij (i * j'),
+  have := eq_zero_or_eq_zero_of_mul_eq_zero ( hij (ideal.mul_mem_mul hi hj)),
+  tauto,
 end
 
 --this is probably useless and cumbersome to use (if ever used)
@@ -345,7 +315,7 @@ begin
 end
 
 
-lemma ddk_mul_right_inj [dedekind_id R'] (A B C : ideal R') (A ≠ ⊥ ) : A * B = A * C ↔ B=C :=
+lemma ddk_mul_right_inj [dedekind_id R'] {A B C : ideal R'} (A ≠ ⊥ ) : A * B = A * C ↔ B=C :=
 begin
   symmetry,
   split,
@@ -355,17 +325,25 @@ begin
   have : J * A * B = J * A  * C,
   {rw [mul_assoc, ab_eq_ac,mul_assoc],},
   rw mul_comm(J)(A) at this,
-  
+  have h1 := prod_principal_eq_zero_iff_eq_zero R' A J Jkey ne_bot,
+  cases Jkey.principal with a akey,
+  by_cases a = 0,
+  {
+    exfalso,
+    rw h at akey,
+    rw [submodule.span_singleton_eq_bot.mpr, h1] at akey,
+    exact H akey, refl,
+  },
   sorry,
 end
 /-
 TODO: Refactor ddk_left_inj to be more like mul_left_inj
 -/
-lemma ddk_left_inj [dedekind_id R'] (A B C : ideal R') ( C ≠ ⊥ ) : A * C = B * C ↔ A = B :=
+lemma ddk_left_inj [dedekind_id R'] {A B C : ideal R'} ( C ≠ ⊥ ) : A * C = B * C ↔ A = B :=
 begin
   rw [mul_comm(A), mul_comm(B)],
-  have h1 := ddk_mul_right_inj R' C A B C H, --why does this require so many args?
-  exact h1,
+  apply ddk_mul_right_inj,
+  repeat {simpa only []},
 end
 
 --This is currently dead wrong
