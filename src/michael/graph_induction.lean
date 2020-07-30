@@ -26,6 +26,7 @@ begin
   sorry
 end
 
+@[elab_as_eliminator]
 lemma induction_on 
   (P : simple_graph V → Prop)
   (P_empty : P empty)
@@ -59,7 +60,7 @@ lemma card_edges_erase (e : G.E) : (G.erase e).card_edges + 1 = G.card_edges :=
 begin
   sorry
 end
-
+@[elab_as_eliminator]
 lemma induction_on_erase
   (P : simple_graph V → Prop)
   (P_empty : P empty)
