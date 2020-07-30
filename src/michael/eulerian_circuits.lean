@@ -6,12 +6,14 @@ import tactic
 noncomputable theory
 open_locale classical
 
+open simple_graph
+namespace simple_graph
+
 universes u
 variables {V : Type u} [fintype V] {G : simple_graph V}
 open finset
 
-open simple_graph
-namespace simple_graph
+
 
 /-- number of times v is in an edge in path x y -/
 def path.crossed (v : V) (p : G.path) : ℕ :=
@@ -83,20 +85,37 @@ lemma has_eulerian_path_iff :
   G.has_eulerian_path ↔ card (filter {v : V | ¬ nat.even (G.degree v)} univ) ∈ ({0, 2} : finset ℕ) :=
 begin
   split,
-  { rintro ⟨x, y, p, hep⟩,
-    have deg_cross := G.degree_eq_crossed p hep,
-    simp at *, 
-    by_cases x = y,
+  { intro hep, cases hep with p e,
+    simp at *,
+    by_cases p.is_cycle,
     { left, convert finset.filter_false _,
-      { ext, simp [deg_cross, path_crossed, h] },
+      { ext, 
+        have deg_cross := degree_eq_crossed x p e, rw deg_cross,
+        simp [path_crossed, h],
+        },
       { apply_instance } },
     { right,
-      have : finset.card {x, y} = 2, { rw [card_insert_of_not_mem, card_singleton], rwa mem_singleton },
-      convert this, ext, 
-      suffices : ¬(G.degree a).even ↔ a = x ∨ a = y, convert this; { simp; refl },
-      rw [deg_cross, path_crossed'], simp [h]; tauto,
-    }},
-  intro h, simp only [mem_insert, card_eq_zero, mem_singleton] at h, 
+      have : finset.card {p.head, p.tail} = 2, { rw [card_insert_of_not_mem, card_singleton], rwa mem_singleton,
+        
+      },
+    }
+  },
+  
+  
+  -- { rintro ⟨x, y, p, hep⟩,
+  --   have deg_cross := G.degree_eq_crossed p hep,
+  --   simp at *, 
+  --   by_cases x = y,
+  --   { left, convert finset.filter_false _,
+  --     { ext, simp [deg_cross, path_crossed, h] },
+  --     { apply_instance } },
+  --   { right,
+  --     have : finset.card {x, y} = 2, { rw [card_insert_of_not_mem, card_singleton], rwa mem_singleton },
+  --     convert this, ext, 
+  --     suffices : ¬(G.degree a).even ↔ a = x ∨ a = y, convert this; { simp; refl },
+  --     rw [deg_cross, path_crossed'], simp [h]; tauto,
+  --   }},
+  -- intro h, simp only [mem_insert, card_eq_zero, mem_singleton] at h, 
   -- I think we need induction on the number of edges?
   
   sorry,
