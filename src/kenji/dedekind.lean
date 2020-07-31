@@ -183,7 +183,7 @@ a point such that I_{n-1} ⊂ I_n = I_{n+1}.
 -/
 
 --this is currently false, it is maximal IN THE SET, but not necessarily in the ring
-lemma set_has_maximal [ring R'] (a : set $ ideal R') (set_nonempty : a.nonempty) : ∃ (M ∈ a), ideal.is_maximal(M) :=
+lemma set_has_maximal [ring R'] (a : set $ ideal R') (set_nonempty : a.nonempty) : ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I = M :=
 begin
   sorry,
 end
@@ -206,6 +206,24 @@ begin
   exact H (this a h2),
 end
 
+lemma zero_prime [integral_domain R'] : (⊥ : ideal R').is_prime :=
+begin
+  split,
+  {
+    intro,
+    have h1 := (ideal.eq_top_iff_one) (⊥ : ideal R') ,
+    rw h1 at a,
+    have : 1 = (0 : R'), tauto,
+    simpa,
+  },
+  {
+    intros,
+    have h1 : x * y = 0, tauto,
+    have x_or_y0 : x = 0 ∨ y = 0,
+    exact zero_eq_mul.mp (eq.symm h1),
+    tauto,
+  },
+end
 
 namespace dedekind
 
@@ -220,29 +238,47 @@ this is contained in M, but this is a contradiction.
 -/
 
 --modify statement b/c don't know ∣ and ⊆ are the same yet.
-lemma ideal_contains_prime_product [dedekind_id R'] : ∀ (I : ideal R'), ∃ (P : ideal R'), P.is_prime ∧ (P∣I) :=
+lemma ideal_contains_prime_product [dedekind_id R'] (I : ideal R') (gt_zero : ⊥  < I ) : ∃ (plist : list $ ideal R'), plist.prod ≤ I ∧ (∀(P ∈  plist), ideal.is_prime P ∧ ⊥ < P ) :=
 begin
   /- IMPORTANT NOTE: some things here work that work for the wrong reasons (read: ne_top)
   -/
   by_contradiction hyp,
   push_neg at hyp,
-  let A := {J : ideal R' |  ∀ (P : ideal R'), P.is_prime → ¬ P ∣ J}, 
+  let A := {J : ideal R' | ∀(qlist : list $ ideal R'), qlist.prod ≤ J → (∃(P ∈ qlist), ideal.is_prime(P) →  ¬⊥ < P)}, 
   have key : A.nonempty,
-  { cases hyp with I Ikey, use I, simpa only [], },
-  
+  { use I, simpa only [exists_prop, set.mem_set_of_eq],},
+
   rcases set_has_maximal R' A key with ⟨ M, Mkey, maximal⟩,
   rw set.mem_set_of_eq at Mkey,
+  by_cases M = ⊥,
+  {
+    have h1 := maximal I,
+    have h2 : I ∈ A, simpa,
+    rw h at h1,
+    have h3 := h1 h2,
+    have h4 : ⊥ ≤ I,
+    { cases gt_zero, exact gt_zero_left,},
+    cases gt_zero,
+    have := h3 h4,
+    rw this at *, tauto,
+  },
   have h1 : ¬ M.is_prime,
   {
     by_contradiction,
-    apply Mkey M a,
-    exact dvd_refl M,
+    have h1 := Mkey [M],
+    rw list.prod_singleton at h1,
+    have : M ≤ M, exact le_refl M,
+    rcases h1 this with ⟨ P, Pkey, hp ⟩,
+    have blah: P = M, exact list.mem_singleton.mp Pkey, 
+    
+    rw blah at hp,
+    have hp' := hp a,
+    clear' h1 Pkey this blah hp P,
+    sorry,
   },
   unfold ideal.is_prime at h1,
   push_neg at h1,
-  have mult := maximal, --here is bad math
-  unfold ideal.is_maximal at mult, --also bad
-  cases mult with ne_top junk, clear junk, --will need to prove ne_top a different way
+  have ne_top : M ≠ ⊤ , sorry,
   have h2 := h1 ne_top,
   rcases h2 with ⟨r,s,rs_in_m, r_nin_m, s_nin_m⟩,
   set ray := M + ideal.span({r}) with mr,
@@ -283,9 +319,10 @@ begin
   },
   --there are too many variables that may or may not be needed....
   rcases say_contains_prime with ⟨ P , P_prime , P_dvd⟩,
-  have h2 : P ∣ M, {sorry,},
-  clear' P_dvd,
-  exact Mkey P P_prime h2,
+  --have h2 : P ∣ M, {sorry,},
+  --clear' P_dvd,
+  --exact Mkey P P_prime h2,
+  sorry,
 end
 /-
 For any proper ideal I, there exists an element, γ,  in K (the field of fractions of R) such that 
@@ -330,7 +367,25 @@ end
 --this seems true, should check!
 lemma ideal_mul_eq_zero [integral_domain R'] {I J : ideal R'} : (I * J = ⊥) ↔ I = ⊥ ∨ J = ⊥ :=
 begin
-  sorry,
+  have hJ : inhabited J, by exact submodule.inhabited J,
+  have j := inhabited.default J, clear hJ,
+  split, swap,
+  { intros,
+    cases a,
+    {rw [← ideal.mul_bot J, a, ideal.mul_comm],},
+    {rw [← ideal.mul_bot I, a, ideal.mul_comm],},
+  },
+  intro hij,
+  by_cases J = ⊥,
+  tauto,
+  left,
+  rw submodule.eq_bot_iff,
+  intros i hi,
+  rcases J.ne_bot_iff.1 h with ⟨ j', hj, ne0⟩,
+  rw submodule.eq_bot_iff at hij,
+  specialize hij (i * j'),
+  have := eq_zero_or_eq_zero_of_mul_eq_zero ( hij (ideal.mul_mem_mul hi hj)),
+  tauto,
 end
 
 --this is probably useless and cumbersome to use (if ever used)
