@@ -16,6 +16,7 @@ open finset
 
 
 /-- number of times v is in an edge in path x y -/
+-- should be number of times v is in an edge of p
 def path.crossed (v : V) (p : G.path) : ℕ :=
 p.vertices.count v
 
@@ -44,6 +45,9 @@ lemma path_crossed (p : G.path) (z : V) :
 nat.even (p.crossed z) ↔ p.is_cycle ∨ (z ≠ p.head ∧ z ≠ p.last)
 :=
 begin
+  induction p with d a s t hp,
+  split,
+  simp at *,
   sorry,
   -- induction p with d a s t has p hp,
   -- { suffices : G.crossed z (path.nil d) = 0, simp [this],
@@ -65,6 +69,8 @@ end
 lemma degree_eq_crossed (v : V) (p : G.path) (hp : p.is_Eulerian): 
 G.degree v = p.crossed v :=
 begin
+  unfold degree, unfold path.crossed,
+  
   sorry,
   -- intro h,
   -- induction p with d a s t has p hp, 
