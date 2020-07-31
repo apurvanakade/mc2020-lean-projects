@@ -172,14 +172,12 @@ Currently mathlib has the following two characteristics of Noetherian modules
 (ii) - Every ideal is finitely generated
 This is the third that mathlib does not have (pertaining to rings, perhaps to modules(?)):
 (iii) - Every non-empty set S of ideals has a maximal member. i.e. if M ⊂ I, then I = R ∨ I = M
-Proof of equivalence: by mathlib (i) ↔ (ii).
-(ii → iii) - Start off with any ideal in S, then two cases: it is contained in another ideal (we induct)
-or it is not (it is maximal and we terminate), but since eventually the first case becomes constant, we are done.
 
-(iii → i) - Start off with a finitely generated subideal of I with only 1 generator, call it I_1
-Now, add another generator, and observe that I_1 ⊂ I_2, and continue
-I_1 ⊂ I_2 ⊂ I_3 ⊂ … and this chain must have a maximal ideal, and so eventually we must come to
-a point such that I_{n-1} ⊂ I_n = I_{n+1}.
+Proof of equivalence: by mathlib (i) ↔ (ii).
+
+(i → iii) - This is just the statement of Zorn's lemma applied to the poset of elements of S ordered under inclusion.
+(iii → ii) - Let I be an ideal. Take S to be the set of subideals of I which are finitely generated. 
+Then the maximal element of S has to equal I.
 -/
 
 --this is currently false, it is maximal IN THE SET, but not necessarily in the ring
