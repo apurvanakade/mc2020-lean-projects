@@ -9,16 +9,35 @@ variables {V : Type u}
 
 section list
 
-@[simp] lemma list.cons_nth_le_succ
+lemma list.cons_nth_le_succ
   {α : Type*} {hd : α} (tl : list α) 
-  (n : ℕ) (hn : n + 1 < (tl.cons hd).length) :
-(tl.cons hd).nth_le (n + 1) hn = tl.nth_le n (by tidy) := rfl
+  (n : ℕ) (hn : n + 1 < (tl.cons hd).length) 
+  (h_auto : n < tl.length := by tidy)
+  :
+(tl.cons hd).nth_le (n + 1) hn = tl.nth_le n h_auto := rfl
 
-lemma list.tail_nth_le
+lemma list.cons_nth_le_succ'
   {α : Type*} (l : list α) 
-  (n : ℕ) (hn : n < l.tail.length) :
-l.tail.nth_le n hn = l.nth_le (n + 1) (by { simp at hn, omega, }) := 
+  (n : ℕ) (hn : n + 1 < l.length) 
+  (h_auto : n < l.tail.length)
+  :
+l.nth_le (n + 1) hn = l.tail.nth_le n h_auto := 
+by { cases l, { cases hn }, simp; refl }
+
+@[simp] lemma list.nth_le_succ_tail
+  {α : Type*} (l : list α) 
+  (n : ℕ) (hn : n < l.tail.length)
+  (h_auto : n + 1 < l.length)
+  -- (h_auto : n + 1 < l.length := by { simp at hn, omega })
+   :
+l.nth_le (n + 1) h_auto = l.tail.nth_le n hn := 
 by { cases l, tidy }
+
+@[simp] lemma list.tail_nth_le_zero
+  {α : Type*} (l : list α) [inhabited α]
+  (h_auto : 0 < l.length) :
+list.nth_le l 0 h_auto = l.head := 
+by { cases l, { cases h_auto }, tidy, }
 
 
 end list
@@ -34,8 +53,9 @@ variables (G : simple_graph V)
 (edges : list G.E)
 (length_eq : edges.length = tail.length)
 (adj : ∀ (n : ℕ) (hn : n < edges.length), 
-  (list.cons head tail).nth_le n (by { simp; omega }) ∈ edges.nth_le n hn ∧ 
-  (list.cons head tail).nth_le (n + 1) (by { simp; omega }) ∈ edges.nth_le n hn)
+  let u := (list.cons head tail).nth_le n (by { simp; omega }) in
+  let v := (list.cons head tail).nth_le (n + 1) (by { simp, cc }) in
+  u ≠ v ∧ u ∈ edges.nth_le n hn ∧ v ∈ edges.nth_le n hn)
 
 
 namespace path
@@ -57,6 +77,16 @@ def length : ℕ := p.tail.length
 
 @[simp] lemma tail_length_eq : p.tail.length = p.length := rfl
 @[simp] lemma edges_length_eq : p.edges.length = p.length :=  by simp [p.length_eq]
+
+
+lemma head_ne_tail_head [inhabited V] (h : p.tail ≠ list.nil) : p.head ≠ p.tail.head :=
+begin
+  rcases p.adj 0 _ with ⟨hp, _⟩, dsimp at hp, convert hp, 
+  cases hp1 : p.tail, 
+  { contradiction }, 
+  { simp [hp1] },
+  { revert h, rw ← list.length_pos_iff_ne_nil, simp }, 
+end
 
 -- variables {s t : V}
 
@@ -90,31 +120,31 @@ lemma vertex_mem_empty {u v : V} : u ∈ (@empty _ G v) ↔ u = v :=
 by { unfold has_mem.mem vertex_mem, simp [empty, vertices], apply or_false }
 
 /-- p.cons e hp hs is the path extending `p` by edge `e`. -/
-def cons {s : V} (e : G.E) (hp : p.head ∈ e) (hs : s ∈ e) : G.path :=
+def cons {s : V} (e : G.E) (hp : p.head ∈ e) (hs : s ∈ e) (hsp : s ≠ p.head) : G.path :=
 { head := s,
-  tail := p.vertices,
+  tail := p.vertices, 
   edges := list.cons e p.edges,
   length_eq := by { simp [vertices] },
   adj := begin
-    intros n hn, simp only [list.length] at hn,
+    intros n hn _ _,
     cases n, { simp, tauto },
     simp; apply p.adj,
   end }
 
-@[simp] lemma edge_mem_cons {s : V} (hd e : G.E) (hp : p.head ∈ hd) (hs : s ∈ hd) : 
-  (p.cons hd hp hs).edge_mem e ↔ e = hd ∨ p.edge_mem e :=
+@[simp] lemma edge_mem_cons {s : V} (hd e : G.E) (hp : p.head ∈ hd) (hs : s ∈ hd) (hsp : s ≠ p.head) : 
+  (p.cons hd hp hs hsp).edge_mem e ↔ e = hd ∨ p.edge_mem e :=
 by simp [path.cons, path.vertices, edge_mem]
 
-@[simp] lemma vertex_mem_cons {v s : V} (hd : G.E) (hp : p.head ∈ hd) (hs : s ∈ hd) : 
-  v ∈ (p.cons hd hp hs) ↔ v = s ∨ v ∈ p :=
+@[simp] lemma vertex_mem_cons {v s : V} (hd : G.E) (hp : p.head ∈ hd) (hs : s ∈ hd) (hsp : s ≠ p.head) : 
+  v ∈ (p.cons hd hp hs hsp) ↔ v = s ∨ v ∈ p :=
 by refl
 
-@[simp] lemma cons_length {v : V} (e : G.E) (hs : p.head ∈ e) (hv : v ∈ e) : 
-  (p.cons e hs hv).length = p.length + 1 :=
+@[simp] lemma cons_length {s : V} (hd : G.E) (hp : p.head ∈ hd) (hs : s ∈ hd) (hsp : s ≠ p.head) : 
+  (p.cons hd hp hs hsp).length = p.length + 1 :=
 by { unfold cons length, simp [vertices] }
 
-@[simp] lemma cons_vertices {v : V} (e : G.E) (hs : p.head ∈ e) (hv : v ∈ e) : 
-  (p.cons e hs hv).vertices = list.cons v p.vertices :=
+@[simp] lemma cons_vertices {s : V} (hd : G.E) (hp : p.head ∈ hd) (hs : s ∈ hd) (hsp : s ≠ p.head) : 
+  (p.cons hd hp hs hsp).vertices = list.cons s p.vertices :=
 by { dsimp [vertices, cons], simp }
 
 lemma edges_eq_nil_iff : p.edges = list.nil ↔ p.tail = list.nil :=
@@ -130,7 +160,7 @@ end
 
 lemma cases_on' [nonempty V] : 
   (∃ v, p = empty v) ∨
-  ∃ (tl : G.path) v e (hs : tl.head ∈ e) (hv : v ∈ e) , p = tl.cons e hs hv :=
+  ∃ (tl : G.path) v e (hs : tl.head ∈ e) (hv : v ∈ e) (hvp : v ≠ tl.head), p = tl.cons e hs hv hvp :=
 begin
   inhabit V,
   cases hp : p.edges with hd tl, 
@@ -141,35 +171,45 @@ begin
   have hp_nil : ¬ p.edges = list.nil, { simp [hp] },
   rw edges_eq_nil_iff at hp_nil,
 
-  cases p.adj 0 _ with hv hs, simp only [list.nth_le, zero_add] at hs, 
+  rcases p.adj 0 _ with ⟨hvs, hv, hs⟩, simp only [list.nth_le, zero_add] at hs, 
   repeat { rw list.nth_le_zero at * }, 
   set q : G.path := { head := p.tail.head,
     tail := list.tail p.tail,
     edges := list.tail p.edges,
     length_eq := by simp [p.length_eq],
     adj := _},
-  swap, { intros, have := p.adj (n + 1) (by {simp only [list.length_tail] at hn, omega}), 
+  swap, { intros, have := p.adj (n + 1) (by { simp only [list.length_tail] at hn, exact nat.add_lt_of_lt_sub_right hn, }), 
     simp only [list.nth_le] at this ⊢, 
-    iterate 2 { rw list.tail_nth_le }, 
-    convert this, apply list.cons_head_tail hp_nil },
+    cases this with huv this,
+    cases hp_tail : p.tail with p_hd p_tl, { contradiction },
+    dsimp [u,v], simp [hp_tail],   split, 
+    { contrapose! huv, symmetry, convert huv using 1; simp [hp_tail, huv]; refl },
+    -- simp [hp_tail, this],
+    -- rw list.tail_nth_le, 
+    convert this using 2,
+    any_goals { simp [hp_tail]; refl },
+    -- { rw list.cons_head_tail hp_nil, refl }, 
+    iterate 2 { rwa list.cons_nth_le_succ' },
+    },
   right, use [q, p.head, hd], 
   simp only [hp, list.head] at hs hv, swap, { simp [hp] },
-  dsimp, use [hs, hv], 
+  dsimp, use [hs, hv], split,
   ext, 
   { simp [path.cons] },
   { dsimp [q, path.cons, path.vertices], rwa list.cons_head_tail, },
-  { dsimp [q, path.cons], simp [hp] },
+  { dsimp [q, path.cons], simp [hp] }, 
+  revert hvs, simp,
 end
 
 lemma induction_on [nonempty V] 
   (P : G.path → Prop)
   (P_empty : ∀ v, P $ empty v) 
-  (P_inductive : ∀ p e hs {v} (hv : v ∈ e), P p → P (p.cons e hs hv)) : 
+  (P_inductive : ∀ p e hs {v} (hv : v ∈ e) (hsv), P p → P (p.cons e hs hv hsv)) : 
 P p :=
 begin
   suffices : ∀ k (q : G.path), q.length = k → P q, { apply this p.length, refl },
   intro k, induction k with k hk, { intros, convert P_empty _, rwa ← length_eq_zero_iff_eq_empty },
-  intro q, rcases q.cases_on' with ⟨_,rfl⟩|⟨_,_,_,_,_,rfl⟩, { intro, apply P_empty },
+  intro q, rcases q.cases_on' with ⟨_,rfl⟩|⟨_,_,_,_,_,_,rfl⟩, { intro, apply P_empty },
   intro, apply P_inductive, apply hk, simp at a, omega,
 end
 

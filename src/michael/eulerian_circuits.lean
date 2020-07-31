@@ -1,6 +1,7 @@
 import data.nat.parity
 import data.finset
 import .path
+import .graph_induction
 import tactic
 
 noncomputable theory
@@ -18,16 +19,24 @@ open finset
 /-- number of times v is in an edge in path x y -/
 -- should be number of times v is in an edge of p
 def path.crossed (v : V) (p : G.path) : ℕ :=
-p.vertices.count v
+p.edges.countp $ λ e, v ∈ e
 
 variables (G)
 def has_eulerian_path : Prop := ∃ p : G.path, p.is_Eulerian
 variables {G}
 
 -- no edges contained in the nil path
-lemma crossed_cons {s v : V} (e : G.E) (p : G.path) (w : V) (hp : p.head ∈ e) (hs : s ∈ e):
-(p.cons e hp hs).crossed v = p.crossed v + if v = s then 1 else 0 :=
-by { delta path.crossed, split_ifs with h; simp [list.count_cons, h] }
+lemma crossed_cons {s v : V} (e : G.E) (p : G.path) (w : V) (hp : p.head ∈ e) (hs : s ∈ e) (hsv):
+(p.cons e hp hs hsv).crossed v = p.crossed v + if v = s ∨ v = p.head then 1 else 0 :=
+begin
+  dsimp [path.crossed, path.cons],
+  split_ifs with h, 
+  { cases h; simp [h, hs, hp] },
+  suffices : v ∉ e, { simp [this] },
+  rw e.mem_iff hs, push_neg, split, tauto,
+  contrapose! h, right, 
+  rw h, symmetry, rw e.eq_other_iff, tauto,
+end
 -- adding an edge adds 1 to crossed if the edge contains the vertex
 
 -- lemma crossed_add_non_edge {x y z : V} (e : G.adj x y) (p : G.path y z) (w : V) :
@@ -87,7 +96,7 @@ begin
   -- tauto,
 end
 
-lemma has_eulerian_path_iff : 
+lemma has_eulerian_path_iff [nonempty V] : 
   G.has_eulerian_path ↔ card (filter {v : V | ¬ nat.even (G.degree v)} univ) ∈ ({0, 2} : finset ℕ) :=
 begin
   split,
@@ -106,6 +115,16 @@ begin
       suffices : ¬(G.degree a).even ↔ a = p.head ∨ a = p.last, convert this; { simp; refl },
       have deg_cross := degree_eq_crossed a p e, rw [deg_cross, path_crossed], simp [h]; tauto,
     }},
+    refine G.induction_on _ _ _,
+    { intro, inhabit V, use path.empty (arbitrary _), sorry },
+    clear G, intros G hG0,
+    by_cases (filter {v : V | ¬(G.degree v).even} univ).card = 0,
+    { sorry },
+    by_cases (filter {v : V | ¬(G.degree v).even} univ).card = 2,
+    { sorry },
+    use empty, split, exact empty_is_subgraph G,
+
+    -- convert G.induction_on _ _ _, refl,
   
   
   
