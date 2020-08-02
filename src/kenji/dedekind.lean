@@ -126,6 +126,7 @@ begin
     have p' := local_ring.maximal_ideal (localization.at_prime P),
     have hp' := local_ring.maximal_ideal.is_maximal (localization.at_prime P),
     --use p' does not work
+    
     repeat {sorry},
   },
 
@@ -180,6 +181,15 @@ Proof of equivalence: by mathlib (i) ↔ (ii).
 Then the maximal element of S has to equal I.
 -/
 
+--this is not in mathlib for some reason(???)
+lemma in_submodule_span_of_gen_set {X : Type u} [ring R'] [add_comm_group X] [module R' X] : ∀(s : set X), ∀( x : X), x ∈ s → x ∈ (submodule.span R' s) :=
+begin
+  intros s x xins,
+  have h1 : s ⊆ submodule.span R' s,
+  exact submodule.subset_span,
+  exact h1 xins,
+end
+
 
 theorem set_has_maximal_iff_noetherian {X : Type u} [ring R'] [add_comm_group X] [module R' X] : (∀(a : set $ submodule R' X), a.nonempty → ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I=M) ↔ is_noetherian R' X := 
 begin
@@ -215,33 +225,52 @@ begin
     {
       split,
       {-- (Mgen, x) is a submodule of I
-
-        sorry,
+        have this : I = submodule.span R' I, simp only [submodule.span_eq],
+        rw this,
+        have that : (↑Mgen : set X) ∪ {x} ⊆ I,
+        tactic.swap,
+        exact submodule.span_mono that,
+        have that : (↑Mgen : set X) ⊆ M, rw ← Mgenkey, exact submodule.subset_span,
+        have that' : (M : set X) ⊆  I, {have this : M ≤ I, finish, exact this,},
+        have there : ({x} : set X) ⊆ I, exact set.singleton_subset_iff.mpr xini,
+        clear' this xninm Mgenkey max mins h3,
+        have that : (↑Mgen : set X) ⊆ I, exact set.subset.trans that that', 
+        exact set.union_subset that there,
       },
       { refine submodule.fg_def.mpr _,
         use (↑Mgen ∪ {x}), split, split, exact additive.fintype, refl,
       },
     },
-    have mltx : M ≤ submodule.span R' (↑ Mgen ∪ {x}),
+    have mlex : M ≤ submodule.span R' (↑ Mgen ∪ {x}),
     {
-      sorry,
+      rw ← Mgenkey,
+      have : (↑Mgen : set X) ⊆ (↑ Mgen : set X)∪ {x}, exact (↑Mgen : set X).subset_union_left {x},
+      exact submodule.span_mono this,
     },
     --suspiciously we never use `a` (maybe code-golf later(?))
     clear' hyp a,
-    have h4 := max (submodule.span R' (↑Mgen ∪ {x})) xins mltx,
+    have h4 := max (submodule.span R' (↑Mgen ∪ {x})) xins mlex,
     have h5 : x ∈ submodule.span R' ((↑Mgen : set X) ∪ {x}),
-    { -- really obvious
-      
-      sorry,
+    {
+      have h' : x ∈ ((↑ Mgen : set X) ∪ {x}),
+      exact (↑Mgen : set X).mem_union_right rfl,
+      exact in_submodule_span_of_gen_set R' ((↑ Mgen : set X) ∪ {x}) x h',
     },
     clear' mins max h3 xini h2,
     have h6 : (x ∈ submodule.span R' (↑ Mgen ∪ {x})) ↔  (x ∈ M),
     { exact iff_of_eq (congr_arg (has_mem.mem x) h4),},
     exact xninm (h6.1 h5),
   },
-  {
+  {/-
+      use zorn's somewhere
+  -/
     rw is_noetherian_iff_well_founded,
     intro wf,
+    intro a,
+    intro a_nonempty,
+    by_contradiction hyp,
+    push_neg at hyp,
+    
     -- my understanding here is less than well founded
     sorry,
   },
@@ -367,9 +396,9 @@ begin
     have part2 : ideal.span{r} * M ≤ M, exact ideal.mul_le_left,
     have part3 : M*ideal.span{s} ≤ M, exact ideal.mul_le_right,
     have part4' : ideal.span {r} * ideal.span {s} = (ideal.span{r*s} : ideal R'),
-    { --ideal.span{r} * ideal.span{s} = ideal.span{r*s} is annoying
-      
-      sorry,
+    {
+      unfold ideal.span,
+      rw [submodule.span_mul_span, set.singleton_mul_singleton],
     },
     rw part4',
     have part4 : ideal.span{r*s} ≤ M,
