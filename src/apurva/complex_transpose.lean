@@ -66,11 +66,13 @@ end
   (c • M).complex_transpose = complex.conj c • M.complex_transpose :=
 by ext; simp
 
+lemma det_complex_conj {M : matrix n n ℂ} :
+  M.conj.det = M.det.conj :=
+sorry
 
-
-lemma det_of_complex_transpose {A : matrix n n ℂ} : 
-A.complex_transpose.det = complex.conj (A.det) :=
-  sorry
-
+@[simp]
+lemma det_complex_transpose {M : matrix n n ℂ} : 
+M.complex_transpose.det = complex.conj (M.det) :=
+by {unfold matrix.complex_transpose, rw [det_complex_conj, matrix.det_transpose]}
 
 end complex_transpose
