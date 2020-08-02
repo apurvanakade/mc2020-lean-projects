@@ -180,11 +180,82 @@ Proof of equivalence: by mathlib (i) ↔ (ii).
 Then the maximal element of S has to equal I.
 -/
 
---this is currently false, it is maximal IN THE SET, but not necessarily in the ring
-lemma set_has_maximal [ring R'] (a : set $ ideal R') (set_nonempty : a.nonempty) : ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I = M :=
+
+theorem set_has_maximal_iff_noetherian {X : Type u} [ring R'] [add_comm_group X] [module R' X] : (∀(a : set $ submodule R' X), a.nonempty → ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I=M) ↔ is_noetherian R' X := 
 begin
+  split,
+  {
+    intro hyp,
+    split,
+    intro I,
+    let S := {J : submodule R' X | J ≤ I ∧ J.fg},
+    have blah : (⊥ : submodule R' X) ≤ I,
+    simp only [bot_le],
+    have h2 : S.nonempty,
+    use (⊥ : submodule R' X), simp only [true_and, bot_le, set.mem_set_of_eq], exact submodule.fg_bot,
+    clear blah,
+    have main := hyp S h2,
+    rcases main with ⟨ M, mins, max⟩,
+    have mfg : M.fg,
+    { rw set.mem_set_of_eq at mins, cases mins, exact mins_right},
+    by_contradiction,
+    rw submodule.fg_def at a, push_neg at a,
+    rcases mfg with ⟨ Mgen , Mgenkey⟩,
+    have h3 := a ↑Mgen (finset.finite_to_set Mgen),
+    have h4 : ∃(x ∈  I), (x ∉ M),
+    { -- there exists an element of x in I but not in M
+      -- seems relatively hard to prove
+      clear' h2 hyp,
+      by_contra h,
+      push_neg at h,
+      sorry,
+    },
+    rcases h4 with ⟨ x, xini, xninm⟩,
+    have xins : submodule.span R' (↑Mgen ∪ {x}) ∈ S,
+    {
+      split,
+      {-- (Mgen, x) is a submodule of I
+
+        sorry,
+      },
+      { refine submodule.fg_def.mpr _,
+        use (↑Mgen ∪ {x}), split, split, exact additive.fintype, refl,
+      },
+    },
+    have mltx : M ≤ submodule.span R' (↑ Mgen ∪ {x}),
+    {
+      sorry,
+    },
+    --suspiciously we never use `a` (maybe code-golf later(?))
+    clear' hyp a,
+    have h4 := max (submodule.span R' (↑Mgen ∪ {x})) xins mltx,
+    have h5 : x ∈ submodule.span R' ((↑Mgen : set X) ∪ {x}),
+    { -- really obvious
+      
+      sorry,
+    },
+    clear' mins max h3 xini h2,
+    have h6 : (x ∈ submodule.span R' (↑ Mgen ∪ {x})) ↔  (x ∈ M),
+    { exact iff_of_eq (congr_arg (has_mem.mem x) h4),},
+    exact xninm (h6.1 h5),
+  },
+  {
+    rw is_noetherian_iff_well_founded,
+    intro wf,
+    -- my understanding here is less than well founded
+    sorry,
+  },
+end
+
+lemma set_has_maximal [comm_ring R'] [is_noetherian_ring R'] (a : set $ ideal R') (set_nonempty : a.nonempty): ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I = M :=
+begin
+  have h0 : is_noetherian R' R', assumption,
+  have h1 := (set_has_maximal_iff_noetherian(R') ).2 h0,
+  --I still don't know how to unfold ideal
+  --have h2 := h1 a set_nonempty,
   sorry,
 end
+
 
 --ring with id is most general(?)
 lemma lt_add_nonmem [integral_domain R'] (I : ideal R') (a ∉ I) : I < I+ideal.span{a} :=
@@ -240,6 +311,7 @@ lemma ideal_contains_prime_product [dedekind_id R'] (I : ideal R') (gt_zero : �
 begin
   /- IMPORTANT NOTE: some things here work that work for the wrong reasons (read: ne_top)
   -/
+  letI : is_noetherian_ring R', exact dedekind_id.noetherian,
   by_contradiction hyp,
   push_neg at hyp,
   let A := {J : ideal R' | ∀(qlist : list $ ideal R'), qlist.prod ≤ J → (∃(P ∈ qlist), ideal.is_prime(P) →  ¬⊥ < P)}, 
