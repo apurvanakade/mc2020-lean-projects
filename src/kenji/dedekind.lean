@@ -218,7 +218,12 @@ begin
       clear' h2 hyp,
       by_contra h,
       push_neg at h,
-      sorry,
+      have h1 : I ≤ M, exact h,
+      rw Mgenkey at h3,
+      have : M ≤ I,
+      { have that : M ≤ I ∧ M.fg, exact mins, tauto,},
+      have final : M = I, exact le_antisymm this h1,
+      exact h3 final,
     },
     rcases h4 with ⟨ x, xini, xninm⟩,
     have xins : submodule.span R' (↑Mgen ∪ {x}) ∈ S,
@@ -263,26 +268,36 @@ begin
   },
   {/-
       use zorn's somewhere
+    wf : ∀x, (∀y, y > x → P(x) → P(y)) → P(x) for all predicates P
+    wf.apply a : acc r a
+    in other words,
+    wf.apply a : ∀y, y > a → acc (gt) y → acc (gt) a 
   -/
     rw is_noetherian_iff_well_founded,
-    intro wf,
-    intro a,
-    intro a_nonempty,
-    by_contradiction hyp,
-    push_neg at hyp,
+    intros wf A A_nonempty,
+    have hA : inhabited A,
+    { refine classical.inhabited_of_nonempty _, exact nonempty_subtype.mpr A_nonempty,},
+    rw set.nonempty_def at A_nonempty,
+    cases A_nonempty with a akey,
+    have h1 := wf.apply a,
+    
+    
+    
+    --by_contra hyp,
+    --push_neg at hyp,
     
     -- my understanding here is less than well founded
     sorry,
   },
 end
 
-lemma set_has_maximal [comm_ring R'] [is_noetherian_ring R'] (a : set $ ideal R') (set_nonempty : a.nonempty): ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I = M :=
+lemma set_has_maximal [is_noetherian_ring R'] (a : set $ ideal R') (set_nonempty : a.nonempty): ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I = M :=
 begin
   have h0 : is_noetherian R' R', assumption,
   have h1 := (set_has_maximal_iff_noetherian(R') ).2 h0,
-  --I still don't know how to unfold ideal
-  --have h2 := h1 a set_nonempty,
-  sorry,
+  delta ideal,
+  delta ideal at a,
+  exact h1 a set_nonempty,
 end
 
 
@@ -309,7 +324,7 @@ begin
   split,
   {
     intro,
-    have h1 := (ideal.eq_top_iff_one) (⊥ : ideal R') ,
+    have h1 := (ideal.eq_top_iff_one) (⊥ : ideal R'),
     rw h1 at a,
     have : 1 = (0 : R'), tauto,
     simpa,
@@ -335,7 +350,7 @@ Now observe that (M+(r))(M+(s)) is divisible by some primes, but M*M ⊂ M, rM �
 this is contained in M, but this is a contradiction.
 -/
 
---modify statement b/c don't know ∣ and ⊆ are the same yet.
+--what is this even trying to prove? chopping block 2.0
 lemma ideal_contains_prime_product [dedekind_id R'] (I : ideal R') (gt_zero : ⊥  < I ) : ∃ (plist : list $ ideal R'), plist.prod ≤ I ∧ (∀(P ∈  plist), ideal.is_prime P ∧ ⊥ < P ) :=
 begin
   /- IMPORTANT NOTE: some things here work that work for the wrong reasons (read: ne_top)
