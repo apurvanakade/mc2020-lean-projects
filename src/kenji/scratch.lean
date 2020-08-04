@@ -17,7 +17,6 @@ x ∈ s is to first prove that {x} ⊆ s, and then try to use submodule.span_mon
 
 -/
 open_locale classical
-#print zorn.exists_maximal_of_chains_bounded
 
 example (R' : Type u) {X : Type u}
   [integral_domain R']
@@ -37,12 +36,38 @@ begin
   rw set.nonempty_def at A_nonempty,
   cases A_nonempty with a akey, 
   have h1 := wf.apply a,
-  have bigdumb : ∀(c : set $ submodule R' X), zorn.chain (≥) c → (∃ (ub : submodule R' X), ∀ (d : submodule R' X), d ∈ c → (≥) d ub),
-  {sorry,},
+  set r := λ (a b : submodule R' X), (a ≤ b), 
 
-  
-  have w := zorn.exists_maximal_of_chains_bounded bigdumb,
-  
+  --this is probably wrong/unnecessary
+  have main : ∀ (c : set $ submodule R' X), c ⊆ A → zorn.chain r c → ∀ (y : submodule R' X), y ∈ c → (∃ (ub : submodule R' X) (H : ub ∈ A), ∀ (z : submodule R' X), z ∈ c → z ≤ ub),
+  {
+    intros c csubA chainc y yinc,
+    by_contra hyp, push_neg at hyp,
+    
+    --rcases hyp a akey with ⟨z ,zinc,zgta ⟩,
+    --we will use h1 to drive a contradiction here
+    --use induction to create an infinitely long chain --how???
+    have h2 : ∀ (c' ⊆ A) (m ∈ c') (max : ∀ (k ∈ c'), m ≤ k → m = k), ∃(x : submodule R' X), (x ∈ c) ∧ (x > m),
+    {
+      intros c' c'suba m minc' max,
+      have mina : m ∈ A, exact c'suba minc',
+      rcases hyp m mina with ⟨x, xinc, xgtm⟩,
+      use x, split, use xinc,
+      split,
+      
 
-  admit,
+      repeat{sorry},
+    },
+    
+    --have zina : z ∈ A, { exact csubA zinc,},
+    --rcases hyp z zina with ⟨z', z'inc, z'gtz ⟩,
+    --here begins the chain! finally use well_founded
+
+    repeat{sorry},
+  },
+  have hp := zorn.zorn_partial_order₀ A main,
+  rcases hp a akey with ⟨M ,MinA, Mkeyl, Mkeyr⟩,
+  use M,
+  split, exact MinA,
+  exact Mkeyr,
 end
