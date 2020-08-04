@@ -46,7 +46,7 @@ simple graph.
 -/
 
 universe u
-
+variables (V : Type u)
 /--
 A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
 The relation describes which pairs of vertices are adjacent.
@@ -58,26 +58,32 @@ Note: The type of the relation is given as `V → set V` rather than
 works as another way to write `G.adj v w`.  Otherwise Lean cannot find
 a `has_mem` instance.
 -/
-structure simple_graph (V : Type u) :=
+@[ext] structure simple_graph :=
 (adj : V → V → Prop)
 (sym : symmetric adj . obviously)
 (loopless : irreflexive adj . obviously)
+namespace simple_graph
+
 
 /--
 The complete graph on a type `V` is the simple graph with all pairs of distinct vertices adjacent.
 -/
-def complete_graph (V : Type u) : simple_graph V :=
+variables {V} (G : simple_graph V)
+
+def complete_graph : simple_graph V :=
 { adj := ne }
 
-instance (V : Type u) : inhabited (simple_graph V) :=
-⟨complete_graph V⟩
+def empty : simple_graph V := 
+{ adj := λ _ _, false}
+
+instance : inhabited (simple_graph V) :=
+⟨@complete_graph V⟩
 
 instance complete_graph_adj_decidable (V : Type u) [decidable_eq V] :
-  decidable_rel (complete_graph V).adj :=
+  decidable_rel (@complete_graph V).adj :=
 by { dsimp [complete_graph], apply_instance }
 
-namespace simple_graph
-variables {V : Type u} (G : simple_graph V)
+-- variables {V} (G : simple_graph V)
 
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
@@ -131,39 +137,52 @@ begin
   exact G.ne_of_edge key,
 end
 
+lemma E.mem_iff (e : G.E) {v : V} (h : v ∈ e) (u : V) :
+  u ∈ e ↔ u = v ∨ u = e.other h :=
+begin
+  convert sym2.mem_iff using 1, 
+  erw sym2.mem_other_spec h, refl,
+end
+
 lemma E.eq_other_iff (e : G.E) {v : V} (h : v ∈ e) (u : V) : 
  u = e.other h ↔ u ≠ v ∧ u ∈ e :=
 begin
   split, { rintro rfl, refine ⟨ E.other_ne _ _, E.other_mem _ _⟩ },
   rintro ⟨huv, hu⟩,
-  sorry
+  rw e.mem_iff h at hu, tauto,
 end
-
-lemma E.mem_iff (e : G.E) {v : V} (h : v ∈ e) (u : V) :
-  u ∈ e ↔ u = v ∨ u = e.other h :=
-begin
-  sorry,
-end
-
 attribute [irreducible] E.other
-variables (G)
 
 instance E.inhabited [inhabited {p : V × V | G.adj p.1 p.2}] : inhabited G.E :=
 ⟨begin
   rcases inhabited.default {p : V × V | G.adj p.1 p.2} with ⟨⟨x, y⟩, h⟩,
   use ⟦(x, y)⟧, rwa sym2.from_rel_prop,
 end⟩
-
-#check fintype.of_equiv_card
--- example (s t : finset V) : s.card = t.card ↔ nonempty 
--- #find finset.card _ = finset.card _ ↔ _
+#check sym2
 
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   fintype G.E := subtype.fintype _
 
 section classical
 open_locale classical
-noncomputable def E_finset [fintype V] (G : simple_graph V) : finset $ V × V :=
+noncomputable theory 
+
+def E.some (e : G.E) : V := 
+begin
+  suffices : ∃ v, v ∈ e,
+  exact classical.some this,
+  sorry
+end
+
+lemma E.some_spec (e : G.E) : e.some ∈ e := 
+begin
+  dsimp [E.some], 
+  -- refine classical.some_spec _,
+end
+
+variables [fintype V]
+
+def E_finset  (G : simple_graph V) : finset $ V × V :=
 finset.filter (λ x, G.adj x.1 x.2) univ
 
 lemma E_finset_spec [decidable_eq V] [fintype V] [decidable_rel G.adj] : 
@@ -175,15 +194,38 @@ begin
   rw ← fintype.card_of_finset, swap, { intro, refl },
   convert fintype.of_equiv_card _, 
   symmetry, refine equiv.of_bijective _ _,
-  rintro ⟨⟨b, hb⟩, e⟩, 
-  { sorry },
-  { sorry },
-  -- rw eq_, 
-  -- apply finset_coe.fintype,
-  -- rotate 2, { apply finset_coe.fintype, exact G.E_finset }, { apply fintype.card_coe },
-  -- rw fintype.card_eq, refine nonempty.intro _,
-  -- refine equiv.of_bijective _ _,
-  -- intro,
+  rintro ⟨b, e⟩, 
+  refine if b = 0 
+    then ⟨(e.some, e.other e.some_spec), _⟩ 
+    else ⟨(e.other e.some_spec, e.some), _⟩,
+  { suffices : G.adj e.some (e.other e.some_spec), simpa [E_finset],
+    rw adj_iff_exists_edge, refine ⟨ e, e.some_spec, _⟩, apply e.other_mem, 
+    symmetry, apply e.other_ne },
+  { suffices : G.adj (e.other e.some_spec) _, simpa [E_finset],
+    rw adj_iff_exists_edge, { refine ⟨ e, _, e.some_spec⟩, apply e.other_mem },
+    simp [e.other_ne] },
+  sorry,
+  -- refine ⟨_, _⟩, 
+  -- intros x y h,
+  -- by_cases hxy : x.1 = y.1,
+  -- ext, any_goals { simp [hxy] }, 
+  -- dsimp at h, by_cases hy : y.1 = 0, 
+end
+variables (G)
+#check prod.eq_iff_fst_eq_snd_eq
+def card_edges : ℕ := fintype.card G.E
+
+@[simp] lemma empty_card_edges : (@empty V).card_edges = 0 :=
+by { dsimp [card_edges], rw fintype.card_eq_zero_iff, tidy }
+
+lemma card_edges_eq_zero_iff : 
+  G.card_edges = 0 ↔ G = empty :=
+begin
+  split, swap, { rintro rfl, simp },
+  intro h, dsimp [card_edges] at h, 
+  ext, simp only [empty, iff_false], contrapose! h,
+  rw [← nat.pos_iff_ne_zero, fintype.card_pos_iff],
+  apply nonempty.intro, exact G.edge_of_adj h,
 end
 
 end classical
@@ -212,6 +254,7 @@ Use `neighbor_finset_eq_filter` to rewrite this definition as a `filter`.
 -/
 
 variables (v : V) [fintype (G.neighbor_set v)]
+variables (G)
 /--
 `G.neighbors v` is the `finset` version of `G.adj v` in case `G` is
 locally finite at `v`.
@@ -235,8 +278,7 @@ end finite_at
 
 section locally_finite
 
-variable [∀ (v : V), fintype (G.neighbor_set v)]
-
+variables (G) [∀ (v : V), fintype (G.neighbor_set v)]
 /--
 A regular graph is a locally finite graph such that every vertex has the same degree.
 -/
@@ -257,14 +299,14 @@ by { ext, simp }
 
 @[simp]
 lemma complete_graph_degree [decidable_eq V] (v : V) :
-  (complete_graph V).degree v = fintype.card V - 1 :=
+  (@complete_graph V).degree v = fintype.card V - 1 :=
 begin
   convert univ.card.pred_eq_sub_one,
   erw [degree, neighbor_finset_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
 end
 
 lemma complete_graph_is_regular [decidable_eq V] :
-  regular_graph (complete_graph V) (fintype.card V - 1) :=
+  (@complete_graph V).regular_graph (fintype.card V - 1) :=
 by { intro v, simp }
 
 end finite
