@@ -5,6 +5,7 @@ Author: Aaron Anderson, Jalex Stark, Kyle Miller.
 -/
 import data.fintype.basic
 import .sym2
+import tactic
 
 open finset
 -- noncomputable theory
