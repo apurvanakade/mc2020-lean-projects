@@ -220,7 +220,7 @@ def is_cycle : Prop := p.head = p.last
 def is_trail : Prop := list.nodup p.edges
 
 /-- p.is_Eulerian if p hits each edge exactly once. -/
-def is_Eulerian : Prop := ∀ e : G.E, p.edge_mem e
+def is_Eulerian : Prop := ∀ e : G.E, p.is_trail ∧ p.edge_mem e
 
 end path
 
