@@ -118,7 +118,7 @@ begin
     refine G.induction_on _ _ _,
     { intro, inhabit V, use path.empty (arbitrary _), 
     unfold path.is_Eulerian, 
-    have empt : empty.E = pempty, sorry, sorry, sorry, },
+    have empt : empty.E = pempty, sorry, sorry, exact V, },
     clear G, intros G hG0,
     by_cases (filter {v : V | ¬(G.degree v).even} univ).card = 0,
     { rw h, simp at *, have e : G.E, sorry,
@@ -152,8 +152,9 @@ begin
   --   }},
   -- intro h, simp only [mem_insert, card_eq_zero, mem_singleton] at h, 
   -- I think we need induction on the number of edges?
-  
-  sorry,
+  split, rw empty_card_edges, have zero_neq : G.card_edges ≠ 0, contrapose! hG0,
+  rw ← card_edges_eq_zero_iff, exact hG0, omega, exact G,
+  intro x, intro y, exfalso, finish,
 end
 -- iff the number of vertices of odd degree is 0 or 2
 
