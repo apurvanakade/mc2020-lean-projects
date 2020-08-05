@@ -47,22 +47,38 @@ begin
     --rcases hyp a akey with ⟨z ,zinc,zgta ⟩,
     --we will use h1 to drive a contradiction here
     --use induction to create an infinitely long chain --how???
-    have h2 : ∀ (c' ⊆ A) (m ∈ c') (max : ∀ (k ∈ c'), m ≤ k → m = k), ∃(x : submodule R' X), (x ∈ c) ∧ (x > m),
+    /-have h2 : ∀ (c' ⊆ c) (m ∈ c') (max : ∃(m ∈ c'), ∀ (k ∈ c'), m ≤ k → m = k), ∃(x : submodule R' X), (x ∈ c) ∧ (x > m),
     {
-      intros c' c'suba m minc' max,
+      intros c' c'subc m minc' max,
+      have c'suba : c' ⊆ A, exact set.subset.trans c'subc csubA,
       have mina : m ∈ A, exact c'suba minc',
+      have minc : m ∈ c, exact c'subc minc',
       rcases hyp m mina with ⟨x, xinc, xgtm⟩,
       use x, split, use xinc,
+      have h3 := zorn.chain.total_of_refl chainc xinc minc,
       split,
-      
-
-      repeat{sorry},
+      cases h3, exact id (λ (a_1 : X), false.rec (a_1 ∈ ↑m → a_1 ∈ ↑x) (xgtm h3)),
+      exact h3, exact xgtm,
     },
-    
+    clear hyp, -- I think h2 is stronger than hyp
+    have csubc : c ⊆ c, exact set.subset.rfl,
+    have final := h2 c csubc,
     --have zina : z ∈ A, { exact csubA zinc,},
     --rcases hyp z zina with ⟨z', z'inc, z'gtz ⟩,
     --here begins the chain! finally use well_founded
-
+    -/
+    by_cases ∃(m ∈ c), ∀(k ∈ c), m ≤ k → m=k,
+    {
+      rcases h with ⟨ m , minc, max⟩,
+      have mina : m ∈ A, exact csubA minc,
+      rcases hyp m mina with ⟨z,zinc,zgtm⟩,
+      have mztot := zorn.chain.total_of_refl chainc zinc minc,
+      have : m ≤ z, cases mztot, exact id (λ (x : X), false.rec (x ∈ m → x ∈ z) (zgtm mztot)), exact mztot,
+      have h0 := max z zinc this,
+      rw h0 at zgtm, rw h0 at this, exact zgtm this,
+    },
+    delta acc gt at h1,
+    --something something chain
     repeat{sorry},
   },
   have hp := zorn.zorn_partial_order₀ A main,
