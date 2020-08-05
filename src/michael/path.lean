@@ -1,8 +1,6 @@
 -- authorship note: we pulled things from mathlib:hedetniemi without looking carefully at authorship.
 -- we'll have to backsolve for the author list later
 import michael.simple_graph
-import tactic.omega
-import tactic.apply_fun
 
 universes u
 variables {V : Type u}
@@ -43,7 +41,7 @@ by { cases l, { cases h_auto }, tidy, }
 end list
 
 namespace simple_graph
-variables (G : simple_graph V)
+variables (G : simple_graph V) [inhabited V]
 
 /-- Morally, a path is an alternating list of vertices and edges, 
   with incidences between adjacent objects -/
@@ -77,9 +75,11 @@ def length : ℕ := p.tail.length
 
 @[simp] lemma tail_length_eq : p.tail.length = p.length := rfl
 @[simp] lemma edges_length_eq : p.edges.length = p.length :=  by simp [p.length_eq]
+@[simp] lemma vertices_tail : p.vertices.tail = p.tail := by simp [path.vertices] 
+@[simp] lemma vertices_length : p.vertices.length = p.length + 1 := by simp [path.vertices] 
 
-
-lemma head_ne_tail_head [inhabited V] (h : p.tail ≠ list.nil) : p.head ≠ p.tail.head :=
+#check list.nth_eq_some
+lemma head_ne_tail_head  (h : p.tail ≠ list.nil) : p.head ≠ p.tail.head :=
 begin
   rcases p.adj 0 _ with ⟨hp, _⟩, dsimp at hp, convert hp, 
   cases hp1 : p.tail, 
@@ -87,6 +87,11 @@ begin
   { simp [hp1] },
   { revert h, rw ← list.length_pos_iff_ne_nil, simp }, 
 end
+
+
+-- begin
+
+-- end
 
 -- variables {s t : V}
 
@@ -104,19 +109,23 @@ instance has_mem_vertices : has_mem V G.path :=
 variables (p)
 
 /-- The empty path based at vertex v. -/
-def empty (v : V) : G.path :=
+def empty (G : simple_graph V) (v : V) : G.path :=
 { head := v,
   tail := list.nil,
   edges := list.nil,
   length_eq := rfl,
   adj := by rintros _ ⟨_⟩ }
 
-instance [inhabited V] : inhabited G.path := { default := empty (arbitrary V) }
+instance : inhabited G.path := { default := empty G (arbitrary V) }
 
-lemma edge_mem_empty {v : V} (e : G.E) : ¬ (empty v).edge_mem e :=
+@[simp]
+lemma empty_length (v : V) : (empty G v).length = 0 := by refl
+
+
+lemma edge_mem_empty {v : V} (e : G.E) : ¬ (empty G v).edge_mem e :=
 by simp [empty, edge_mem]
 
-lemma vertex_mem_empty {u v : V} : u ∈ (@empty _ G v) ↔ u = v :=
+lemma vertex_mem_empty {u v : V} : u ∈ (empty G v) ↔ u = v :=
 by { unfold has_mem.mem vertex_mem, simp [empty, vertices], apply or_false }
 
 /-- p.cons e hp hs is the path extending `p` by edge `e`. -/
@@ -150,7 +159,7 @@ by { dsimp [vertices, cons], simp }
 lemma edges_eq_nil_iff : p.edges = list.nil ↔ p.tail = list.nil :=
 by rw [← list.length_eq_zero, p.length_eq, list.length_eq_zero]
 
-lemma length_eq_zero_iff_eq_empty : p.length = 0 ↔ p = empty p.head :=
+lemma length_eq_zero_iff_eq_empty : p.length = 0 ↔ p = empty G p.head :=
 begin
   erw list.length_eq_zero,
   split; intro h, swap, rw h, simp [empty],
@@ -158,11 +167,10 @@ begin
   any_goals {simp [empty, h]},
 end
 
-lemma cases_on' [nonempty V] : 
-  (∃ v, p = empty v) ∨
+lemma cases_on' : 
+  (∃ v, p = empty G v) ∨
   ∃ (tl : G.path) v e (hs : tl.head ∈ e) (hv : v ∈ e) (hvp : v ≠ tl.head), p = tl.cons e hs hv hvp :=
 begin
-  inhabit V,
   cases hp : p.edges with hd tl, 
   { left, use p.head, ext, { simp [empty] }, 
     { suffices : p.tail = list.nil, { simp [empty, this] },
@@ -201,9 +209,10 @@ begin
   revert hvs, simp,
 end
 
-lemma induction_on [nonempty V] 
+@[elab_as_eliminator]
+lemma induction_on 
   (P : G.path → Prop)
-  (P_empty : ∀ v, P $ empty v) 
+  (P_empty : ∀ v, P $ empty G v) 
   (P_inductive : ∀ p e hs {v} (hv : v ∈ e) (hsv), P p → P (p.cons e hs hv hsv)) : 
 P p :=
 begin
@@ -213,6 +222,45 @@ begin
   intro, apply P_inductive, apply hk, simp at a, omega,
 end
 
+
+lemma consecutive_vertex_ne {n} (h : n < p.length) : 
+p.vertices.nth_le n (by { simp, linarith }) ≠ 
+p.vertices.nth_le (n+1) (by { simp, linarith }) :=
+begin
+  revert n,
+  convert p.induction_on (λ q, ∀ n (h : n < q.length), q.vertices.nth_le n _ ≠ q.vertices.nth_le (n+1) _) _ _, 
+  { simp }, iterate 2 { simp, omega },
+  { rintros _ _ ⟨⟩ },
+  clear p, intros _ _ _ _ _ _ h n hn,
+  cases n, { simpa }, 
+  convert h _ _,
+  simp at hn, omega,
+end
+
+@[ext] lemma eq_of_vertices_eq (q : G.path) :  p = q ↔ p.vertices = q.vertices :=
+{ mp := by tidy,
+  mpr := begin
+    intro h, have h_tail : p.tail = q.tail,
+    { dsimp [vertices] at h, simp only [] at h, tauto },
+    have h_length : p.length = q.length := by rw [← tail_length_eq, h_tail, tail_length_eq],
+    ext, { tidy }, { simp [h_tail] },
+    by_cases hn : n < p.length; have hnq := by { rw h_length at hn, exact hn },
+    swap, { simp [hn, hnq, list.nth_eq_some] },
+    suffices : p.edges.nth_le n _ = q.edges.nth_le n _, 
+    { simp [hn, hnq, list.nth_eq_some]; refine eq.congr this rfl },
+    rw edge_eq_iff,
+    set u := p.vertices.nth_le n (by { simp [path.vertices], linarith }),
+    set v := p.vertices.nth_le (n+1) (by { simp [path.vertices], linarith }),
+    use [u, v],
+    split, symmetry, apply consecutive_vertex_ne,
+    rcases p.adj n _ with ⟨_, hpu, hpv⟩,
+    rcases q.adj n _ with ⟨_, hqu, hqv⟩,
+    split, { exact hpu },
+    split, { convert hqu, dsimp [u], simp_rw h, refl },
+    split, { exact hpv },
+    { convert hqv, dsimp [v], simp_rw h, refl },
+  end }
+
 /-- p.is_cycle if p starts and ends in the same place. -/
 def is_cycle : Prop := p.head = p.last
 
@@ -220,7 +268,7 @@ def is_cycle : Prop := p.head = p.last
 def is_trail : Prop := list.nodup p.edges
 
 /-- p.is_Eulerian if p hits each edge exactly once. -/
-def is_Eulerian : Prop := ∀ e : G.E, p.edge_mem e
+def is_Eulerian : Prop := p.is_trail ∧ ∀ e : G.E, p.edge_mem e
 
 end path
 

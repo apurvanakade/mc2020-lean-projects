@@ -77,6 +77,9 @@ def complete_graph : simple_graph V :=
 def empty : simple_graph V := 
 { adj := λ _ _, false}
 
+
+-- @[simp] lemma empty_adj (v u : V) : (@empty V).adj v u ↔ false := by tidy
+
 instance : inhabited (simple_graph V) :=
 ⟨@complete_graph V⟩
 
@@ -104,9 +107,24 @@ instance has_mem : has_mem V G.E := { mem := λ v e, v ∈ e.val }
 /-- Construct an edge from its endpoints. -/
 def edge_of_adj {v w : V} (h : G.adj v w) : G.E := ⟨⟦(v,w)⟧, h⟩
 
+lemma edge_eq_edge_of_adj (e : G.E): 
+  ∃ v w, ∃ (h : G.adj v w), e = G.edge_of_adj h := 
+begin
+  sorry
+end
+
+lemma edge_eq_edge_of_adj_iff (e : G.E) {v w} (h : G.adj v w) : 
+  e = G.edge_of_adj h ↔ v ∈ e ∧ w ∈ e := 
+begin
+
+  sorry
+end
+
+@[simp]
 lemma mem_of_adj {v w : V} (h : G.adj v w) :
   v ∈ G.edge_of_adj h := sym2.mk_has_mem v w
 
+@[simp] 
 lemma mem_of_adj_right {v w : V} (h : G.adj v w) :
   w ∈ G.edge_of_adj h := sym2.mk_has_mem_right v w
 
@@ -117,6 +135,31 @@ begin
   rintro ⟨e, ⟨w', hve⟩, ⟨v', hew⟩⟩,
   have : e.val = ⟦(v,w)⟧, { rw [hve, sym2.eq_iff] at hew ⊢, cc },
   have key := e.property, rwa this at key,
+end
+
+lemma empty_edge (e : (@empty V).E) : false := by tidy
+
+lemma edge_eq_iff (e d : G.E) : e = d ↔ ∃ u, ∃ v ≠ u, u ∈ e ∧ u ∈ d ∧ v ∈ e ∧ v ∈ d :=
+begin
+ split, 
+ { rintro rfl, rcases G.edge_eq_edge_of_adj e with ⟨u, v, h, rfl⟩, 
+  use [u, v], have := G.ne_of_edge h, simp; cc,
+ },
+ rintro ⟨u, v, h, _⟩,
+ have : G.adj v u, rw G.adj_iff_exists_edge h, use e, tauto,
+ transitivity G.edge_of_adj this,
+ { rw edge_eq_edge_of_adj_iff, tauto },
+ { symmetry, rw edge_eq_edge_of_adj_iff, tauto },
+end
+
+@[ext]
+lemma edge_eq_iff (e d : G.E) : e = d ↔ ∀ u, u ∈ e ↔ u ∈ d :=
+begin
+  split, { rintro rfl, simp },
+  intro h, rw edge_eq_iff,
+  rcases G.edge_eq_edge_of_adj e with ⟨u, v, h_adj, rfl⟩,
+  use [u, v],
+  have := G.ne_of_edge h_adj, simp only [← h], simp; tauto,
 end
 
 variables {G}
@@ -219,7 +262,7 @@ def card_edges : ℕ := fintype.card G.E
 @[simp] lemma empty_card_edges : (@empty V).card_edges = 0 :=
 by { dsimp [card_edges], rw fintype.card_eq_zero_iff, tidy }
 
-lemma card_edges_eq_zero_iff : 
+@[simp] lemma card_edges_eq_zero_iff : 
   G.card_edges = 0 ↔ G = empty :=
 begin
   split, swap, { rintro rfl, simp },
@@ -229,6 +272,19 @@ begin
   apply nonempty.intro, exact G.edge_of_adj h,
 end
 
+lemma empty_iff_not_edge : G = empty ↔ G.E → false :=
+begin
+  split, { rintro rfl, apply empty_edge },
+  intro h, ext u v, suffices : ¬ G.adj u v, { tidy },
+  intro he, have e := G.edge_of_adj he, exact h e,
+end
+
+def inhabited_of_ne_empty (h : G ≠ empty) : inhabited G.E :=
+begin
+  suffices : nonempty G.E, { letI := this, inhabit G.E, assumption },
+  refine fintype.card_pos_iff.mp _, contrapose! h, 
+  erw [le_zero_iff_eq, card_edges_eq_zero_iff] at h, exact h,
+end
 end classical
 
 attribute [irreducible] E
@@ -313,3 +369,4 @@ by { intro v, simp }
 end finite
 
 end simple_graph
+#lint-

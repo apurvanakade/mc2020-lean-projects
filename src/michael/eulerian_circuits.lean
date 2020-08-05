@@ -11,7 +11,7 @@ open simple_graph
 namespace simple_graph
 
 universes u
-variables {V : Type u} [fintype V] {G : simple_graph V}
+variables {V : Type u} [fintype V] [inhabited V] {G : simple_graph V}
 open finset
 
 
@@ -25,6 +25,13 @@ variables (G)
 def has_eulerian_path : Prop := ∃ p : G.path, p.is_Eulerian
 variables {G}
 
+lemma empty_has_eulerian_path  :
+  (@empty V).has_eulerian_path :=
+begin
+  split, swap, { exact path.empty _ (arbitrary V) },
+  split, { exact list.nodup_nil }, 
+  intro e, exfalso, exact empty_edge e,
+end
 -- no edges contained in the nil path
 lemma crossed_cons {s v : V} (e : G.E) (p : G.path) (w : V) (hp : p.head ∈ e) (hs : s ∈ e) (hsv):
 (p.cons e hp hs hsv).crossed v = p.crossed v + if v = s ∨ v = p.head then 1 else 0 :=
@@ -54,10 +61,9 @@ lemma path_crossed (p : G.path) (z : V) :
 nat.even (p.crossed z) ↔ p.is_cycle ∨ (z ≠ p.head ∧ z ≠ p.last)
 :=
 begin
-  induction p with d a s t hp,
-  split,
-  simp at *,
-  sorry,
+  apply p.induction_on,
+  { sorry },
+  { sorry },
   -- induction p with d a s t has p hp,
   -- { suffices : G.crossed z (path.nil d) = 0, simp [this],
   --   erw finset.card_eq_zero,
@@ -75,11 +81,11 @@ begin
   --   rintro ⟨rfl, h⟩; tauto },
 end
 
-lemma degree_eq_crossed (v : V) (p : G.path) (hp : p.is_Eulerian): 
+lemma degree_eq_crossed {p : G.path} (hp : p.is_Eulerian) (v : V): 
 G.degree v = p.crossed v :=
 begin
   unfold degree, unfold path.crossed,
-  
+  cases hp with h_trail h_all,
   sorry,
   -- intro h,
   -- induction p with d a s t has p hp, 
@@ -96,64 +102,63 @@ begin
   -- tauto,
 end
 
-lemma has_eulerian_path_iff [nonempty V] : 
+lemma has_eulerian_path_iff : 
   G.has_eulerian_path ↔ card (filter {v : V | ¬ nat.even (G.degree v)} univ) ∈ ({0, 2} : finset ℕ) :=
 begin
   split,
-  { intro hep, cases hep with p e,
-    simp at *,
+  { intro hep, cases hep with p hp,
+    simp only [mem_insert, card_eq_zero, mem_singleton],
     by_cases p.is_cycle,
     { left, convert finset.filter_false _,
-      { ext, 
-        have deg_cross := degree_eq_crossed x p e, rw deg_cross,
-        simp [path_crossed, h],
-        },
+      { ext, rw [degree_eq_crossed hp, path_crossed], tauto },
       { apply_instance } },
     { right,
       have : finset.card {p.head, p.last} = 2, { rw [card_insert_of_not_mem, card_singleton], rwa mem_singleton },
-      convert this, ext,
-      suffices : ¬(G.degree a).even ↔ a = p.head ∨ a = p.last, convert this; { simp; refl },
-      have deg_cross := degree_eq_crossed a p e, rw [deg_cross, path_crossed], simp [h]; tauto,
-    }},
-    refine G.induction_on _ _ _,
-    { intro, inhabit V, use path.empty (arbitrary _), 
-    unfold path.is_Eulerian, 
-    have empt : empty.E = pempty, sorry, sorry, sorry, },
-    clear G, intros G hG0,
-    by_cases (filter {v : V | ¬(G.degree v).even} univ).card = 0,
-    { rw h, simp at *, have e : G.E, sorry,
-      use G.erase e,
-      split, { exact G.erase_is_subgraph e },
-      split, { rw ← G.card_edges_erase e, linarith },
-      intro x, have eep : (G.erase e).has_eulerian_path, apply x,
-      { left, sorry },
-      cases eep with p ed, sorry,
-    },
-    by_cases (filter {v : V | ¬(G.degree v).even} univ).card = 2,
-    { sorry },
-    use empty, split, exact empty_is_subgraph G,
+      convert this, ext, 
+      simp_rw [degree_eq_crossed hp, path_crossed], 
+      simp [h]; tauto } },
+  refine G.induction_on _ _ _,
+  { intro, apply empty_has_eulerian_path },
+  clear G, intros G hG0,
+  by_cases (filter {v : V | ¬(G.degree v).even} univ).card = 0,
+  { rw h,
+    haveI := G.inhabited_of_ne_empty hG0, --simp at *, 
+    have e := arbitrary G.E,
+    use G.erase e,
+    split, { exact G.erase_is_subgraph e },
+    split, { rw ← G.card_edges_erase e, linarith },
+    intros h_even x, clear x,
+    replace h_even := h_even _,
+    -- intro x, have eep : (G.erase e).has_eulerian_path, apply x,
+    -- { left, sorry },
+    -- cases eep with p ed, 
+    sorry },
+  -- by_cases (filter {v : V | ¬(G.degree v).even} univ).card = 2,
+  -- { sorry },
+  -- use empty, split, { apply empty_is_subgraph }, 
+  -- { simp, sorry }
 
-    -- convert G.induction_on _ _ _, refl,
-  
-  
-  
-  -- { rintro ⟨x, y, p, hep⟩,
-  --   have deg_cross := G.degree_eq_crossed p hep,
-  --   simp at *, 
-  --   by_cases x = y,
-  --   { left, convert finset.filter_false _,
-  --     { ext, simp [deg_cross, path_crossed, h] },
-  --     { apply_instance } },
-  --   { right,
-  --     have : finset.card {x, y} = 2, { rw [card_insert_of_not_mem, card_singleton], rwa mem_singleton },
-  --     convert this, ext, 
-  --     suffices : ¬(G.degree a).even ↔ a = x ∨ a = y, convert this; { simp; refl },
-  --     rw [deg_cross, path_crossed'], simp [h]; tauto,
-  --   }},
-  -- intro h, simp only [mem_insert, card_eq_zero, mem_singleton] at h, 
-  -- I think we need induction on the number of edges?
-  
-  sorry,
+  -- convert G.induction_on _ _ _, refl,
+
+
+
+-- { rintro ⟨x, y, p, hep⟩,
+--   have deg_cross := G.degree_eq_crossed p hep,
+--   simp at *, 
+--   by_cases x = y,
+--   { left, convert finset.filter_false _,
+--     { ext, simp [deg_cross, path_crossed, h] },
+--     { apply_instance } },
+--   { right,
+--     have : finset.card {x, y} = 2, { rw [card_insert_of_not_mem, card_singleton], rwa mem_singleton },
+--     convert this, ext, 
+--     suffices : ¬(G.degree a).even ↔ a = x ∨ a = y, convert this; { simp; refl },
+--     rw [deg_cross, path_crossed'], simp [h]; tauto,
+--   }},
+-- intro h, simp only [mem_insert, card_eq_zero, mem_singleton] at h, 
+-- I think we need induction on the number of edges?
+
+  -- sorry,
 end
 -- iff the number of vertices of odd degree is 0 or 2
 
