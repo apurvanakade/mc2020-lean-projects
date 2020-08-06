@@ -1,5 +1,6 @@
 import ring_theory.fractional_ideal
 import ring_theory.discrete_valuation_ring
+import linear_algebra.basic
 universes u v 
 
 variables (R : Type u) [comm_ring R] {A : Type v} [comm_ring A]
@@ -124,8 +125,7 @@ begin
   {
     have p' := local_ring.maximal_ideal (localization.at_prime P),
     have hp' := local_ring.maximal_ideal.is_maximal (localization.at_prime P),
-    split,
-    refine ⟨_, _⟩,
+    --use p' does not work
     
     repeat {sorry},
   },
@@ -160,15 +160,11 @@ by {letI := dedekind_dvr_imp_dedekind_inv R', exact dedekind_inv_imp_dedekind_id
 /-
 Time to break a lot of things !
 
-
 probably morally correct: fractional ideals have prime factorization !
 (→ regular ideals have prime factorization)
 
-
-
 -/
 
---Noetherian iff Every non-empty set S of ideals has a maximal member.
 open_locale classical
 
 /-
@@ -177,18 +173,169 @@ Currently mathlib has the following two characteristics of Noetherian modules
 (ii) - Every ideal is finitely generated
 This is the third that mathlib does not have (pertaining to rings, perhaps to modules(?)):
 (iii) - Every non-empty set S of ideals has a maximal member. i.e. if M ⊂ I, then I = R ∨ I = M
-Proof of equivalence: by mathlib (i) ↔ (ii).
-(ii → iii) - Start off with any ideal in S, then two cases: it is contained in another ideal (we induct)
-or it is not (it is maximal and we terminate), but since eventually the first case becomes constant, we are done.
 
-(iii → i) - Start off with a finitely generated subideal of I with only 1 generator, call it I_1
-Now, add another generator, and observe that I_1 ⊂ I_2, and continue
-I_1 ⊂ I_2 ⊂ I_3 ⊂ … and this chain must have a maximal ideal, and so eventually we must come to
-a point such that I_{n-1} ⊂ I_n = I_{n+1}.
+Proof of equivalence: by mathlib (i) ↔ (ii).
+
+(i → iii) - This is just the statement of Zorn's lemma applied to the poset of elements of S ordered under inclusion.
+(iii → ii) - Let I be an ideal. Take S to be the set of subideals of I which are finitely generated. 
+Then the maximal element of S has to equal I.
 -/
-lemma set_has_maximal [ring R'] (a : set $ ideal R') (set_nonempty : a.nonempty) : ∃ (M ∈ a), ideal.is_maximal(M) :=
+
+--this is not in mathlib for some reason(???)
+lemma in_submodule_span_of_gen_set {X : Type u} [ring R'] [add_comm_group X] [module R' X] : ∀(s : set X), ∀( x : X), x ∈ s → x ∈ (submodule.span R' s) :=
 begin
-  sorry,
+  intros s x xins,
+  have h1 : s ⊆ submodule.span R' s,
+  exact submodule.subset_span,
+  exact h1 xins,
+end
+
+
+theorem set_has_maximal_iff_noetherian {X : Type u} [ring R'] [add_comm_group X] [module R' X] : (∀(a : set $ submodule R' X), a.nonempty → ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I=M) ↔ is_noetherian R' X := 
+begin
+  split,
+  {
+    intro hyp,
+    split,
+    intro I,
+    let S := {J : submodule R' X | J ≤ I ∧ J.fg},
+    have blah : (⊥ : submodule R' X) ≤ I,
+    simp only [bot_le],
+    have h2 : S.nonempty,
+    use (⊥ : submodule R' X), simp only [true_and, bot_le, set.mem_set_of_eq], exact submodule.fg_bot,
+    clear blah,
+    have main := hyp S h2,
+    rcases main with ⟨ M, mins, max⟩,
+    have mfg : M.fg,
+    { rw set.mem_set_of_eq at mins, cases mins, exact mins_right},
+    by_contradiction,
+    rw submodule.fg_def at a, push_neg at a,
+    rcases mfg with ⟨ Mgen , Mgenkey⟩,
+    have h3 := a ↑Mgen (finset.finite_to_set Mgen),
+    have h4 : ∃(x ∈  I), (x ∉ M),
+    { -- there exists an element of x in I but not in M
+      -- seems relatively hard to prove
+      clear' h2 hyp,
+      by_contra h,
+      push_neg at h,
+      have h1 : I ≤ M, exact h,
+      rw Mgenkey at h3,
+      have : M ≤ I,
+      { have that : M ≤ I ∧ M.fg, exact mins, tauto,},
+      have final : M = I, exact le_antisymm this h1,
+      exact h3 final,
+    },
+    rcases h4 with ⟨ x, xini, xninm⟩,
+    have xins : submodule.span R' (↑Mgen ∪ {x}) ∈ S,
+    {
+      split,
+      {-- (Mgen, x) is a submodule of I
+        have this : I = submodule.span R' I, simp only [submodule.span_eq],
+        rw this,
+        have that : (↑Mgen : set X) ∪ {x} ⊆ I,
+        tactic.swap,
+        exact submodule.span_mono that,
+        have that : (↑Mgen : set X) ⊆ M, rw ← Mgenkey, exact submodule.subset_span,
+        have that' : (M : set X) ⊆  I, {have this : M ≤ I, finish, exact this,},
+        have there : ({x} : set X) ⊆ I, exact set.singleton_subset_iff.mpr xini,
+        clear' this xninm Mgenkey max mins h3,
+        have that : (↑Mgen : set X) ⊆ I, exact set.subset.trans that that', 
+        exact set.union_subset that there,
+      },
+      { refine submodule.fg_def.mpr _,
+        use (↑Mgen ∪ {x}), split, split, exact additive.fintype, refl,
+      },
+    },
+    have mlex : M ≤ submodule.span R' (↑ Mgen ∪ {x}),
+    {
+      rw ← Mgenkey,
+      have : (↑Mgen : set X) ⊆ (↑ Mgen : set X)∪ {x}, exact (↑Mgen : set X).subset_union_left {x},
+      exact submodule.span_mono this,
+    },
+    --suspiciously we never use `a` (maybe code-golf later(?))
+    clear' hyp a,
+    have h4 := max (submodule.span R' (↑Mgen ∪ {x})) xins mlex,
+    have h5 : x ∈ submodule.span R' ((↑Mgen : set X) ∪ {x}),
+    {
+      have h' : x ∈ ((↑ Mgen : set X) ∪ {x}),
+      exact (↑Mgen : set X).mem_union_right rfl,
+      exact in_submodule_span_of_gen_set R' ((↑ Mgen : set X) ∪ {x}) x h',
+    },
+    clear' mins max h3 xini h2,
+    have h6 : (x ∈ submodule.span R' (↑ Mgen ∪ {x})) ↔  (x ∈ M),
+    { exact iff_of_eq (congr_arg (has_mem.mem x) h4),},
+    exact xninm (h6.1 h5),
+  },
+  {/-
+      use zorn's somewhere
+    wf : ∀x, (∀y, y > x → P(x) → P(y)) → P(x) for all predicates P
+    wf.apply a : acc r a
+    in other words,
+    wf.apply a : ∀y, y > a → acc (gt) y → acc (gt) a 
+  -/
+    rw is_noetherian_iff_well_founded,
+    intros wf A A_nonempty,
+    have hA : inhabited A,
+    { refine classical.inhabited_of_nonempty _, exact nonempty_subtype.mpr A_nonempty,},
+    rw set.nonempty_def at A_nonempty,
+    cases A_nonempty with a akey,
+    have h1 := wf.apply a,
+    
+    
+    
+    --by_contra hyp,
+    --push_neg at hyp,
+    
+    -- my understanding here is less than well founded
+    sorry,
+  },
+end
+
+lemma set_has_maximal [is_noetherian_ring R'] (a : set $ ideal R') (set_nonempty : a.nonempty): ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I = M :=
+begin
+  have h0 : is_noetherian R' R', assumption,
+  have h1 := (set_has_maximal_iff_noetherian(R') ).2 h0,
+  delta ideal,
+  delta ideal at a,
+  exact h1 a set_nonempty,
+end
+
+
+--ring with id is most general(?)
+lemma lt_add_nonmem [integral_domain R'] (I : ideal R') (a ∉ I) : I < I+ideal.span{a} :=
+begin
+  have blah : ∀ (x y : ideal R'), x ≤ x ⊔ y, 
+  { intros x y, simp only [le_sup_left],},
+  split, exact blah I (ideal.span{a}),
+  have blah2 : ∀ (x y z : ideal R'),  x ⊔ y ≤ z → x ≤ z → y ≤ z,
+  { intros x y z, simp only [sup_le_iff], tauto,},
+  have h : I ≤ I, exact le_refl I,
+  rw ideal.add_eq_sup,
+  intro bad,
+  have h1 := blah2 I (ideal.span{a}) I bad h,
+  have h2 : a ∈ ideal.span{a},
+  { rw ideal.mem_span_singleton', use 1, rw one_mul,},
+  have : ∀ (x ∈ ideal.span{a}), x ∈ I, simpa only [],
+  exact H (this a h2),
+end
+
+lemma zero_prime [integral_domain R'] : (⊥ : ideal R').is_prime :=
+begin
+  split,
+  {
+    intro,
+    have h1 := (ideal.eq_top_iff_one) (⊥ : ideal R'),
+    rw h1 at a,
+    have : 1 = (0 : R'), tauto,
+    simpa,
+  },
+  {
+    intros,
+    have h1 : x * y = 0, tauto,
+    have x_or_y0 : x = 0 ∨ y = 0,
+    exact zero_eq_mul.mp (eq.symm h1),
+    tauto,
+  },
 end
 
 namespace dedekind
@@ -202,17 +349,94 @@ Since r ∉ M, M+(r) > M, and since M is maximal, M+(r) and M+(s) must be divisi
 Now observe that (M+(r))(M+(s)) is divisible by some primes, but M*M ⊂ M, rM ⊂ M, sM ⊂ M, and rs ⊂ M, so
 this is contained in M, but this is a contradiction.
 -/
-lemma ideal_contains_prime_product [dedekind_id R'] : ∀ (I : ideal R'), ∃ (P : ideal R'), P.is_prime ∧ (P∣I) :=
+
+--what is this even trying to prove? chopping block 2.0
+lemma ideal_contains_prime_product [dedekind_id R'] (I : ideal R') (gt_zero : ⊥  < I ) : ∃ (plist : list $ ideal R'), plist.prod ≤ I ∧ (∀(P ∈  plist), ideal.is_prime P ∧ ⊥ < P ) :=
 begin
+  /- IMPORTANT NOTE: some things here work that work for the wrong reasons (read: ne_top)
+  -/
+  letI : is_noetherian_ring R', exact dedekind_id.noetherian,
   by_contradiction hyp,
   push_neg at hyp,
-  have A := {J : ideal R' |  ∀ (P : ideal R'), P.is_prime → ¬ P ∣ J}, 
+  let A := {J : ideal R' | ∀(qlist : list $ ideal R'), qlist.prod ≤ J → (∃(P ∈ qlist), ideal.is_prime(P) →  ¬⊥ < P)}, 
   have key : A.nonempty,
-  cases hyp with I Ikey,
-  use I,
-  --lean fails HERE for some odd reason
-  --rw set.mem_set_of_eq,
-  repeat {sorry},
+  { use I, simpa only [exists_prop, set.mem_set_of_eq],},
+
+  rcases set_has_maximal R' A key with ⟨ M, Mkey, maximal⟩,
+  rw set.mem_set_of_eq at Mkey,
+  by_cases M = ⊥,
+  {
+    have h1 := maximal I,
+    have h2 : I ∈ A, simpa,
+    rw h at h1,
+    have h3 := h1 h2,
+    have h4 : ⊥ ≤ I,
+    { cases gt_zero, exact gt_zero_left,},
+    cases gt_zero,
+    have := h3 h4,
+    rw this at *, tauto,
+  },
+  have h1 : ¬ M.is_prime,
+  {
+    by_contradiction,
+    have h1 := Mkey [M],
+    rw list.prod_singleton at h1,
+    have : M ≤ M, exact le_refl M,
+    rcases h1 this with ⟨ P, Pkey, hp ⟩,
+    have blah: P = M, exact list.mem_singleton.mp Pkey, 
+    
+    rw blah at hp,
+    have hp' := hp a,
+    clear' h1 Pkey this blah hp P,
+    sorry,
+  },
+  unfold ideal.is_prime at h1,
+  push_neg at h1,
+  have ne_top : M ≠ ⊤ , sorry,
+  have h2 := h1 ne_top,
+  rcases h2 with ⟨r,s,rs_in_m, r_nin_m, s_nin_m⟩,
+  set ray := M + ideal.span({r}) with mr,
+  have hmr : M < ray,
+  { exact lt_add_nonmem R' M r r_nin_m,},
+  set say := M + ideal.span({s}) with ms,
+  have hms : M < say,
+  { exact lt_add_nonmem R' M s s_nin_m,},
+  clear r_nin_m s_nin_m ne_top,
+  have main : ray*say ≤ M,
+  {--bashing simplifications, I think this would be a very nice simp tactic
+    rw [ms,mr,left_distrib,right_distrib,right_distrib,← add_assoc],
+    repeat {rw [ideal.add_eq_sup]},
+    have blah : ∀ (x y z : ideal R'), x ≤ z → y ≤ z → x ⊔ y ≤ z, simp only [sup_le_iff], tauto,
+    have part1 : M*M ≤ M, exact ideal.mul_le_left,
+    have part2 : ideal.span{r} * M ≤ M, exact ideal.mul_le_left,
+    have part3 : M*ideal.span{s} ≤ M, exact ideal.mul_le_right,
+    have part4' : ideal.span {r} * ideal.span {s} = (ideal.span{r*s} : ideal R'),
+    {
+      unfold ideal.span,
+      rw [submodule.span_mul_span, set.singleton_mul_singleton],
+    },
+    rw part4',
+    have part4 : ideal.span{r*s} ≤ M,
+    { rw ideal.span_le, simpa,},
+    have h1 := blah (M*M) (ideal.span{r} * M ⊔  M * ideal.span {s} ⊔  ideal.span{r*s}) M part1,
+    rw [←sup_assoc,← sup_assoc] at h1,
+    apply h1,
+    clear' h1 part1,
+    have h1 := blah (ideal.span{r} * M) (M * ideal.span{s} ⊔ ideal.span{r*s}) M part2,
+    rw [←sup_assoc] at h1,
+    apply h1, clear' h1 part2,
+    exact blah (M * ideal.span{s}) (ideal.span {r*s}) M part3 part4,
+  },
+  have say_contains_prime : ∃ (P : ideal R'), P.is_prime ∧ say < P,
+  {--sketch: since M < say and M is maximal of the set, say is not in A, and so has prime factor
+    sorry,
+  },
+  --there are too many variables that may or may not be needed....
+  rcases say_contains_prime with ⟨ P , P_prime , P_dvd⟩,
+  --have h2 : P ∣ M, {sorry,},
+  --clear' P_dvd,
+  --exact Mkey P P_prime h2,
+  sorry,
 end
 /-
 For any proper ideal I, there exists an element, γ,  in K (the field of fractions of R) such that 
@@ -248,26 +472,102 @@ We make the observation that γ J ⊂ J. (rest is sketchy and annoying)
 
 Need to refine conditions (mainly non-zero).
 -/
-lemma exists_ideal_prod_principal [dedekind_id R'](I : ideal R') : ∃ (J : ideal R'), (I * J).is_principal :=
+lemma exists_ideal_prod_principal [dedekind_id R'](I : ideal R') : ∃ (J : ideal R'), (I * J).is_principal ∧ (J ≠ ⊥ ) :=
 begin
   sorry,
 end
 
-lemma mul_right_inj [dedekind_id R'] (A B C : ideal R') (A ≠ ⊥ ) : A * B = A * C ↔ B=C :=
+
+--this seems true, should check!
+lemma ideal_mul_eq_zero [integral_domain R'] {I J : ideal R'} : (I * J = ⊥) ↔ I = ⊥ ∨ J = ⊥ :=
+begin
+  have hJ : inhabited J, by exact submodule.inhabited J,
+  have j := inhabited.default J, clear hJ,
+  split, swap,
+  { intros,
+    cases a,
+    {rw [← ideal.mul_bot J, a, ideal.mul_comm],},
+    {rw [← ideal.mul_bot I, a, ideal.mul_comm],},
+  },
+  intro hij,
+  by_cases J = ⊥,
+  tauto,
+  left,
+  rw submodule.eq_bot_iff,
+  intros i hi,
+  rcases J.ne_bot_iff.1 h with ⟨ j', hj, ne0⟩,
+  rw submodule.eq_bot_iff at hij,
+  specialize hij (i * j'),
+  have := eq_zero_or_eq_zero_of_mul_eq_zero ( hij (ideal.mul_mem_mul hi hj)),
+  tauto,
+end
+
+--this is probably useless and cumbersome to use (if ever used)
+lemma prod_principal_eq_zero_iff_eq_zero [dedekind_id R'] (I : ideal R')
+(J : ideal R') (hj : (I*J).is_principal) (nonzero : (J ≠ ⊥ )) : (I * J) = ⊥ ↔ I = ⊥ :=
+begin
+  split, swap,
+  {intro, rw a, simp,},
+  intro h,
+  have h1 := (ideal_mul_eq_zero(R')).1 h,
+  cases h1, exact h1, simpa only [],
+end
+
+
+lemma ddk_mul_right_inj [dedekind_id R'] (A B C : ideal R') (A ≠ ⊥ ) : A * B = A * C ↔ B=C :=
 begin
   symmetry,
   split,
   {intro, rw a,},
-  cases exists_ideal_prod_principal(R')(A) with J Jkey,
+  rcases exists_ideal_prod_principal(R')(A) with ⟨ J ,Jkey, ne_bot⟩,
   intro ab_eq_ac,
   have : J * A * B = J * A  * C,
   {rw [mul_assoc, ab_eq_ac,mul_assoc],},
+  rw mul_comm(J)(A) at this,
+  
   sorry,
 end
+/-
+TODO: Refactor ddk_left_inj to be more like mul_left_inj
+-/
+lemma ddk_left_inj [dedekind_id R'] (A B C : ideal R') ( C ≠ ⊥ ) : A * C = B * C ↔ A = B :=
+begin
+  rw [mul_comm(A), mul_comm(B)],
+  have h1 := ddk_mul_right_inj R' C A B C H, --why does this require so many args?
+  exact h1,
+end
 
---This is likely not formulated in a useful way, a list might be better, also placeholders are bad
+--This is currently dead wrong
 lemma ideal_prime_factorization [dedekind_id R'] (I : ideal R') : ∃ (pset : finset $ ideal R'), ∃(powset : finset $ ℕ ), (finset.card pset = finset.card powset) ∧ (∀(P ∈  pset), ideal.is_prime(P)) ∧ false :=
 begin
   sorry,  
+end
+
+--every nonzero ideal has an element that's not 0
+lemma nonzero_mem_of_neq_bot [integral_domain R'] (I : ideal R') (gt_bot : ⊥ < I) : ∃ a : I, a ≠ 0 :=
+begin
+  have h := (submodule.lt_iff_le_and_exists.1 gt_bot).2,
+  clear gt_bot,
+  rcases h with ⟨ x, hx, key ⟩,
+  use [x, hx],
+  simp only [submodule.mem_bot] at key,
+  simpa only [ne.def, submodule.mk_eq_zero],
+end
+
+--every ideal is generated by at most two elements of dedekind domain
+lemma two_generators [dedekind_id R'] (I : ideal R')  : ∃ ( a b : R'), I = ideal.span {a,b} :=
+begin
+  by_cases ⊥ < I,
+  tactic.swap,
+  { 
+    have h1 : I = ⊥ ,
+    sorry,
+    use (0 : R'), use (0 : R'), rw h1, simp,
+  },
+  have h1 := nonzero_mem_of_neq_bot R' I h,
+  cases h1 with a a_neq_zero,
+  use a,
+  
+  sorry,
 end
 end dedekind

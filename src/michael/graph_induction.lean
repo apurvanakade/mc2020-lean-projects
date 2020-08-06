@@ -10,10 +10,12 @@ namespace simple_graph
 def is_subgraph (H : simple_graph V) (G : simple_graph V)  : Prop := 
 ∀ u v, H.adj u v → G.adj u v
 
+
 variables (G : simple_graph V) 
 include G
 
 @[refl] lemma is_subgraph_self : G.is_subgraph G := by tidy
+
 lemma empty_is_subgraph : empty.is_subgraph G := by tidy
 
 variables [fintype V]
