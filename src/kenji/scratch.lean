@@ -72,12 +72,16 @@ begin
       rcases h with ⟨ m , minc, max⟩,
       have mina : m ∈ A, exact csubA minc,
       rcases hyp m mina with ⟨z,zinc,zgtm⟩,
-      have mztot := zorn.chain.total_of_refl chainc zinc minc,
+      have mztot := zorn.chain.total_of_refl chainc zinc minc,extract_goal,
       have : m ≤ z, cases mztot, exact id (λ (x : X), false.rec (x ∈ m → x ∈ z) (zgtm mztot)), exact mztot,
       have h0 := max z zinc this,
       rw h0 at zgtm, rw h0 at this, exact zgtm this,
     },
-    delta acc gt at h1,
+    push_neg at h,
+    rw order_embedding.well_founded_iff_no_descending_seq at wf,
+    apply wf,
+    
+    
     --something something chain
     repeat{sorry},
   },
