@@ -36,13 +36,14 @@ begin
   rw set.nonempty_def at A_nonempty,
   cases A_nonempty with a akey, 
   have h1 := wf.apply a,
+
   set r := λ (a b : submodule R' X), (a ≤ b), 
 
   --this is probably wrong/unnecessary
   have main : ∀ (c : set $ submodule R' X), c ⊆ A → zorn.chain r c → ∀ (y : submodule R' X), y ∈ c → (∃ (ub : submodule R' X) (H : ub ∈ A), ∀ (z : submodule R' X), z ∈ c → z ≤ ub),
   {
     intros c csubA chainc y yinc,
-    by_contra hyp, push_neg at hyp,
+    contrapose! wf,
     
     --rcases hyp a akey with ⟨z ,zinc,zgta ⟩,
     --we will use h1 to drive a contradiction here
@@ -69,17 +70,19 @@ begin
     -/
     by_cases ∃(m ∈ c), ∀(k ∈ c), m ≤ k → m=k,
     {
-      rcases h with ⟨ m , minc, max⟩,
+      rcases h with ⟨m, minc, max⟩,
       have mina : m ∈ A, exact csubA minc,
-      rcases hyp m mina with ⟨z,zinc,zgtm⟩,
-      have mztot := zorn.chain.total_of_refl chainc zinc minc,extract_goal,
+      rcases wf m mina with ⟨z, zinc, zgtm⟩,
+      have mztot := zorn.chain.total_of_refl chainc zinc minc,
       have : m ≤ z, cases mztot, exact id (λ (x : X), false.rec (x ∈ m → x ∈ z) (zgtm mztot)), exact mztot,
-      have h0 := max z zinc this,
-      rw h0 at zgtm, rw h0 at this, exact zgtm this,
+      have h0 := max z zinc this, cc,
     },
     push_neg at h,
-    rw order_embedding.well_founded_iff_no_descending_seq at wf,
-    apply wf,
+    rw order_embedding.well_founded_iff_no_descending_seq, push_neg,
+    refine nonempty.intro _,
+    refine order_embedding.nat_gt _ _,
+    intro n, induction n with n Mn, { assumption }, 
+
     
     
     --something something chain

@@ -1,6 +1,7 @@
 import ring_theory.fractional_ideal
 import ring_theory.discrete_valuation_ring
 import linear_algebra.basic
+import order.zorn
 universes u v 
 
 variables (R : Type u) [comm_ring R] {A : Type v} [comm_ring A]
@@ -223,23 +224,24 @@ begin
   --   in other words,
   --   wf.apply a : ∀y, y > a → acc (gt) y → acc (gt) a 
   -- -/
-    rintros A ⟨a, ha⟩, 
+  { rintros A ⟨a, ha⟩, 
     rw is_noetherian_iff_well_founded at h, 
     have h1 := h.apply a, cases h1,
-    
+    cases zorn.exists_maximal_of_chains_bounded _ _ with M hM,
+    use M, split, swap, intros N hN hNM, apply hM,
   --   -- my understanding here is less than well founded
    
   -- },
-  sorry
+  sorry }
 end
 
-lemma set_has_maximal [is_noetherian_ring R'] (a : set $ ideal R') (set_nonempty : a.nonempty): ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I = M :=
+#check zorn.exists_maximal_of_chains_bounded
+
+lemma set_has_maximal [is_noetherian_ring R'] (a : set $ ideal R') (ha : a.nonempty): ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I = M :=
 begin
-  have h0 : is_noetherian R' R', assumption,
-  have h1 := (set_has_maximal_iff_noetherian(R') ).2 h0,
-  delta ideal,
-  delta ideal at a,
-  exact h1 a set_nonempty,
+  have : is_noetherian R' R' := by assumption,
+  rw ← set_has_maximal_iff_noetherian at this,
+  exact this _ ha,
 end
 
 
