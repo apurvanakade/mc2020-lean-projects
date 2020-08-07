@@ -180,115 +180,57 @@ Proof of equivalence: by mathlib (i) ↔ (ii).
 (iii → ii) - Let I be an ideal. Take S to be the set of subideals of I which are finitely generated. 
 Then the maximal element of S has to equal I.
 -/
-
+#print acc
 --this is not in mathlib for some reason(???)
-lemma in_submodule_span_of_gen_set {X : Type u} [ring R'] [add_comm_group X] [module R' X] : ∀(s : set X), ∀( x : X), x ∈ s → x ∈ (submodule.span R' s) :=
-begin
-  intros s x xins,
-  have h1 : s ⊆ submodule.span R' s,
-  exact submodule.subset_span,
-  exact h1 xins,
-end
+lemma in_submodule_span_of_gen_set {X : Type u} [ring R'] [add_comm_group X] [module R' X] 
+{s : set X} {x : X} (h : x ∈ s) : x ∈ (submodule.span R' s) := 
+submodule.subset_span h
 
+    -- rcases mfg with ⟨ Mgen , Mgenkey⟩,
+    -- use ↑Mgen, split, { apply finset.finite_to_set },
+    -- convert Mgenkey, apply max,
 
 theorem set_has_maximal_iff_noetherian {X : Type u} [ring R'] [add_comm_group X] [module R' X] : (∀(a : set $ submodule R' X), a.nonempty → ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I=M) ↔ is_noetherian R' X := 
 begin
-  split,
-  {
-    intro hyp,
-    split,
+  split; intro h,
+  { split,
     intro I,
     let S := {J : submodule R' X | J ≤ I ∧ J.fg},
-    have blah : (⊥ : submodule R' X) ≤ I,
-    simp only [bot_le],
-    have h2 : S.nonempty,
-    use (⊥ : submodule R' X), simp only [true_and, bot_le, set.mem_set_of_eq], exact submodule.fg_bot,
-    clear blah,
-    have main := hyp S h2,
-    rcases main with ⟨ M, mins, max⟩,
-    have mfg : M.fg,
-    { rw set.mem_set_of_eq at mins, cases mins, exact mins_right},
-    by_contradiction,
-    rw submodule.fg_def at a, push_neg at a,
-    rcases mfg with ⟨ Mgen , Mgenkey⟩,
-    have h3 := a ↑Mgen (finset.finite_to_set Mgen),
-    have h4 : ∃(x ∈  I), (x ∉ M),
-    { -- there exists an element of x in I but not in M
-      -- seems relatively hard to prove
-      clear' h2 hyp,
-      by_contra h,
-      push_neg at h,
-      have h1 : I ≤ M, exact h,
-      rw Mgenkey at h3,
-      have : M ≤ I,
-      { have that : M ≤ I ∧ M.fg, exact mins, tauto,},
-      have final : M = I, exact le_antisymm this h1,
-      exact h3 final,
-    },
-    rcases h4 with ⟨ x, xini, xninm⟩,
-    have xins : submodule.span R' (↑Mgen ∪ {x}) ∈ S,
-    {
-      split,
-      {-- (Mgen, x) is a submodule of I
-        have this : I = submodule.span R' I, simp only [submodule.span_eq],
-        rw this,
-        have that : (↑Mgen : set X) ∪ {x} ⊆ I,
-        tactic.swap,
-        exact submodule.span_mono that,
-        have that : (↑Mgen : set X) ⊆ M, rw ← Mgenkey, exact submodule.subset_span,
-        have that' : (M : set X) ⊆  I, {have this : M ≤ I, finish, exact this,},
-        have there : ({x} : set X) ⊆ I, exact set.singleton_subset_iff.mpr xini,
-        clear' this xninm Mgenkey max mins h3,
-        have that : (↑Mgen : set X) ⊆ I, exact set.subset.trans that that', 
-        exact set.union_subset that there,
-      },
-      { refine submodule.fg_def.mpr _,
-        use (↑Mgen ∪ {x}), split, split, exact additive.fintype, refl,
-      },
-    },
-    have mlex : M ≤ submodule.span R' (↑ Mgen ∪ {x}),
-    {
-      rw ← Mgenkey,
-      have : (↑Mgen : set X) ⊆ (↑ Mgen : set X)∪ {x}, exact (↑Mgen : set X).subset_union_left {x},
-      exact submodule.span_mono this,
-    },
-    --suspiciously we never use `a` (maybe code-golf later(?))
-    clear' hyp a,
-    have h4 := max (submodule.span R' (↑Mgen ∪ {x})) xins mlex,
-    have h5 : x ∈ submodule.span R' ((↑Mgen : set X) ∪ {x}),
-    {
-      have h' : x ∈ ((↑ Mgen : set X) ∪ {x}),
-      exact (↑Mgen : set X).mem_union_right rfl,
-      exact in_submodule_span_of_gen_set R' ((↑ Mgen : set X) ∪ {x}) x h',
-    },
-    clear' mins max h3 xini h2,
-    have h6 : (x ∈ submodule.span R' (↑ Mgen ∪ {x})) ↔  (x ∈ M),
-    { exact iff_of_eq (congr_arg (has_mem.mem x) h4),},
-    exact xninm (h6.1 h5),
-  },
-  {/-
-      use zorn's somewhere
-    wf : ∀x, (∀y, y > x → P(x) → P(y)) → P(x) for all predicates P
-    wf.apply a : acc r a
-    in other words,
-    wf.apply a : ∀y, y > a → acc (gt) y → acc (gt) a 
-  -/
-    rw is_noetherian_iff_well_founded,
-    intros wf A A_nonempty,
-    have hA : inhabited A,
-    { refine classical.inhabited_of_nonempty _, exact nonempty_subtype.mpr A_nonempty,},
-    rw set.nonempty_def at A_nonempty,
-    cases A_nonempty with a akey,
-    have h1 := wf.apply a,
+    have h2 : S.nonempty, { use (⊥ : submodule R' X), convert submodule.fg_bot, simp },
+    rcases h S h2 with ⟨ M, ⟨hMI, ⟨Mgen, hMgen⟩⟩, max⟩,
+    rw submodule.fg_def,
+    contrapose! max,
+    have : ∃ x ∈ I, x ∉ M,
+    { 
+      have := max ↑Mgen (finset.finite_to_set Mgen), 
+      contrapose! this, 
+      rw hMgen, ext, tauto },
+    rcases this with ⟨x, hxI, hxM⟩,
+    use submodule.span R' (↑Mgen ∪ {x}), split,
+    { split,
+      { suffices : (↑Mgen : set X) ∪ {x} ⊆ I, { convert submodule.span_mono this, simp },
+        have : (↑Mgen : set X) ⊆ M, { convert submodule.subset_span, cc },
+        apply set.union_subset, { exact set.subset.trans this hMI }, { simp [hxI] } }, 
+      { rw submodule.fg_def, use (↑Mgen ∪ {x}), split, { split, apply_instance }, refl } },
+    split, 
+    { rw ← hMgen, convert submodule.span_mono _, simp },
+    { contrapose! hxM, rw ← hxM, apply in_submodule_span_of_gen_set, simp } },
+
+  -- {/-
+  --     use zorn's somewhere
+  --   wf : ∀x, (∀y, y > x → P(x) → P(y)) → P(x) for all predicates P
+  --   wf.apply a : acc r a
+  --   in other words,
+  --   wf.apply a : ∀y, y > a → acc (gt) y → acc (gt) a 
+  -- -/
+    rintros A ⟨a, ha⟩, 
+    rw is_noetherian_iff_well_founded at h, 
+    have h1 := h.apply a, cases h1,
     
-    
-    
-    --by_contra hyp,
-    --push_neg at hyp,
-    
-    -- my understanding here is less than well founded
-    sorry,
-  },
+  --   -- my understanding here is less than well founded
+   
+  -- },
+  sorry
 end
 
 lemma set_has_maximal [is_noetherian_ring R'] (a : set $ ideal R') (set_nonempty : a.nonempty): ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I = M :=
