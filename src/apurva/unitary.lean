@@ -85,7 +85,7 @@ lemma extension_unitary_of_unitary {k : ℕ} (A : matrix (fin k) (fin k) ℂ) (a
 sorry
 
 theorem unitary_of_unit_vector [linear_order n] [has_zero n] (v : n → ℂ) : 
-  ∥v∥ = 1 → 
+  vector.complex_dot_product v v = 1 → 
   ∃ A : matrix n n ℂ,
   A.unitary ∧ 
   (A 0) = v :=

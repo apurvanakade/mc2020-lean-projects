@@ -86,5 +86,6 @@ begin
   suffices : ∃ c : k, (M - c • 1).det = 0, by simpa [eigenvalue_det],
   let f := char_poly M,
   have hf_deg : 0 < f.degree, by sorry,
-  have c := _inst_4.exists_root f hf_deg, -- why does this not work?
-end 
+  -- have c := _inst_4.exists_root f hf_deg, -- why does this not work?
+  sorry,
+end
