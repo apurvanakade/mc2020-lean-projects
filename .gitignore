@@ -2,3 +2,4 @@
 /_target
 /leanpkg.path
 /leanpkg.toml
+.DS_Store
