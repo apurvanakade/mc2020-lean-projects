@@ -30,9 +30,15 @@ match i, j with
 | ⟨x+1, hx⟩, ⟨y+1, hy⟩ := A ⟨x, nat.lt_of_succ_lt_succ hx⟩ ⟨y, nat.lt_of_succ_lt_succ hy⟩
 end 
 
+-- set_option pp.notation false
 lemma matrix.extension_mul (A B : matrix (fin k) (fin k) ℂ) (a b : ℂ) : 
   (A.extension a)⬝ (B.extension b) = (A ⬝ B).extension (a * b):=
-sorry 
+begin 
+rw ←matrix.ext_iff,
+intros i j,
+unfold has_mul.mul, 
+sorry,
+end
 
 lemma matrix.extension_conj (A : matrix (fin k) (fin k) ℂ) (a : ℂ): 
   (A.extension a).conj = A.conj.extension a.conj := sorry 

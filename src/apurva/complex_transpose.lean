@@ -20,6 +20,9 @@ namespace matrix
 def conj (M : matrix m n ℂ) : matrix m n ℂ := 
 λ i j, complex.conj (M i j)
 
+@[simp] 
+lemma conj_val (M : matrix m n ℂ) (i j) : conj M i j = complex.conj (M i j) := rfl
+
 def complex_transpose (M : matrix m n ℂ) : matrix n m ℂ :=
 M.transpose.conj
 end matrix

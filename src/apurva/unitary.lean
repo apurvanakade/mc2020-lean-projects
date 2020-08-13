@@ -44,8 +44,10 @@ end
 
 lemma unit_of_complex_transpose {A : matrix n n ℂ} (hu : A.unitary) : is_unit A.complex_transpose :=
 begin
+  have hunit := unit_of_unitary hu,
   refine unit_of_unitary _,
-  unfold unitary, rw complex_transpose_transpose, rw unitary_inv hu, rw ← mul_eq_mul,
+  unfold unitary, 
+  rw [complex_transpose_transpose, unitary_inv hu, ← mul_eq_mul],
   sorry
 end
 
@@ -68,10 +70,6 @@ end,
   mul_one := sorry,
   inv := sorry,
   mul_left_inv := sorry }
--- begin
-
--- end
--- #check subtype unitary
 
 theorem rows_of_unitary {A : matrix n n ℂ} : 
   A.unitary ↔ 
@@ -85,7 +83,7 @@ lemma extension_unitary_of_unitary {k : ℕ} (A : matrix (fin k) (fin k) ℂ) (a
 sorry
 
 theorem unitary_of_unit_vector [linear_order n] [has_zero n] (v : n → ℂ) : 
-  vector.complex_dot_product v v = 1 → 
+  vector.complex_norm v = 1 → 
   ∃ A : matrix n n ℂ,
   A.unitary ∧ 
   (A 0) = v :=
