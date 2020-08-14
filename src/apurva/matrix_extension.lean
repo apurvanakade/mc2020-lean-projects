@@ -14,13 +14,12 @@ open_locale classical
 open_locale matrix
 
 universes u u'
-variables {m n l : Type u} [fintype m] [fintype n] [fintype l]
-variables {k : ℕ}
+variables {n : ℕ}
+variables {S : Type u} [semiring S]
 
--- how to rewrite this using fin.cons
--- also need a better name
-def matrix.extension (A : matrix (fin k) (fin k) ℂ) (a : ℂ) : 
-  matrix (fin (k+1)) (fin (k+1)) ℂ
+-- need a better name
+def matrix.extension (A : matrix (fin n) (fin n) S) (a : S) : 
+  matrix (fin (n+1)) (fin (n+1)) S
 := 
 λ i j,
 match i, j with
@@ -30,16 +29,30 @@ match i, j with
 | ⟨x+1, hx⟩, ⟨y+1, hy⟩ := A ⟨x, nat.lt_of_succ_lt_succ hx⟩ ⟨y, nat.lt_of_succ_lt_succ hy⟩
 end 
 
+def vector.extension (v : (fin n) → S) (a : S) : 
+  fin (n+1) → S
+:= 
+λ i,
+match i with
+| ⟨0, _⟩      := a
+| ⟨x+1, hx⟩   := v ⟨x, nat.lt_of_succ_lt_succ hx⟩
+end 
+
+
 -- set_option pp.notation false
-lemma matrix.extension_mul (A B : matrix (fin k) (fin k) ℂ) (a b : ℂ) : 
-  (A.extension a)⬝ (B.extension b) = (A ⬝ B).extension (a * b):=
+lemma matrix.extension_mul (A B : matrix (fin n) (fin n) S) (a b : S) : 
+  (A.extension a) • (B.extension b) = (A • B).extension (a * b):=
 begin 
-rw ←matrix.ext_iff,
-intros i j,
-unfold has_mul.mul, 
+ext,
+cases i, cases i_val,
+cases j, cases j_val,
 sorry,
+repeat{sorry,}
 end
 
-lemma matrix.extension_conj (A : matrix (fin k) (fin k) ℂ) (a : ℂ): 
-  (A.extension a).conj = A.conj.extension a.conj := sorry 
+lemma matrix.extension_conj (A : matrix (fin n) (fin n) ℂ) (a : ℂ) : 
+  (A.extension a).conj = A.conj.extension a.conj :=
+begin 
+sorry,
+end
 

@@ -15,7 +15,7 @@ open_locale classical
 open_locale matrix
 
 universes u u'
-variables {m n l : Type u} [fintype m] [fintype n] [fintype l]
+variables {m n l : Type*} [fintype m] [fintype n] [fintype l]
 variables {k : ℕ}
 
 section unitary 

@@ -6,9 +6,11 @@ import data.matrix.basic
 import tactic
 import linear_algebra.determinant
 import .algebraically_closed
+import linear_algebra.nonsingular_inverse
 import linear_algebra.char_poly
 
 noncomputable theory
+open matrix 
 open_locale matrix
 open_locale classical
 
@@ -18,18 +20,18 @@ open_locale classical
 
 universes u 
 
-variables {S : Type u} [semiring S]
-variables {R : Type u} [ring R]
-variables {k : Type u} [field k] [algebraically_closed k] 
-variables {l m n o : Type u} [fintype l] [fintype m] [fintype n] [fintype o]
-
+variables {S : Type*} [semiring S]
+variables {R : Type*} [ring R]
+variables {k : Type*} [field k]
+variables {l m n o : Type*} [fintype l] [fintype m] [fintype n] [fintype o]
 
 namespace matrix
-def eigenvalue (M : matrix n n S) : S → Prop := 
-λ c, ∃ v : n → S, ∀ i : n, M.mul_vec v i = c * v i
 
 def eigenvector (M : matrix n n S) : (n → S) → Prop := 
-λ v, ∃ c : S, ∀ i : n, M.mul_vec v i = c * v i
+λ v, ∃ c : S, v ≠ 0 ∧ M.mul_vec v = (c • (1 : matrix n n S)).mul_vec v
+
+def eigenvalue (M : matrix n n S) : S → Prop := 
+λ c, ∃ v : n → S, v ≠ 0 ∧ M.mul_vec v = (c • (1 : matrix n n S)).mul_vec v
 
 def eigenvalue_of_eigenvector {M : matrix n n S} {v : n → S} 
 (hc : eigenvector M v) : S := 
@@ -39,7 +41,7 @@ begin
 end 
 
 def eigenspace (M : matrix n n S) (c : S) : set (n → S) :=
-{v | (eigenvector M v) ∧ (∀ i : n, M.mul_vec v i = c * v i)}
+{v | v = 0 ∨ ((eigenvector M v) ∧ M.mul_vec v = (c • (1 : matrix n n S)).mul_vec v) }
 
 def spectrum (M : matrix n n S) : set S :=
 {c | eigenvalue M c}
@@ -66,26 +68,29 @@ instance (M : matrix n n S) (c : S) : semimodule S (matrix.eigenspace M c) :=
   add_smul := sorry,
   zero_smul := sorry }
 
--- instance (M : matrix n n R) (c : R) : add_comm_monoid (matrix.generalized_eigenspace M c) := 
--- { add := sorry,
---   add_assoc := sorry,
---   zero := sorry,
---   zero_add := sorry,
---   add_zero := sorry,
---   add_comm := sorry }
+#check mul_vec 
 
--- instance (M : matrix n n R) (c : R) : semimodule R (matrix.generalized_eigenspace M c) := 
--- sorry
+lemma det_zero_iff_sing {M : matrix n n k} :
+  M.det = 0 ↔ ∃ v : n → k, v ≠ 0 ∧ M.mul_vec v = 0 := 
+begin 
+repeat{sorry,},
+end
 
 lemma eigenvalue_det {M : matrix n n k} {c : k} :
-  M.eigenvalue c ↔ (M - c • 1).det = 0 := 
-sorry
-
-theorem exists_eigenvalue {M : matrix n n k} : (∃ c : k, M.eigenvalue c) :=
+  (M - c • 1).det = 0 ↔ M.eigenvalue c := 
 begin 
-  suffices : ∃ c : k, (M - c • 1).det = 0, by simpa [eigenvalue_det],
-  let f := char_poly M,
+  sorry,
+end 
+
+#check mul_nonsing_inv
+
+theorem exists_eigenvalue (M : matrix n n ℂ) : (∃ c : ℂ, matrix.eigenvalue M c) :=
+begin 
+  let k:= ℂ,
+  suffices : ∃ c : k, (M - c • 1).det = 0, by sorry,
+  set f := char_poly M,
   have hf_deg : 0 < f.degree, by sorry,
-  -- have c := _inst_4.exists_root f hf_deg, -- why does this not work?
   sorry,
 end
+
+#check exists_eigenvalue
