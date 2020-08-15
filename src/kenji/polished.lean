@@ -2,8 +2,8 @@ import ring_theory.fractional_ideal
 import ring_theory.discrete_valuation_ring
 import linear_algebra.basic
 universes u
-
-variables (R : Type u) [integral_domain R] (R' : Type u) [integral_domain R']
+open_locale classical
+variables (R : Type u) [integral_domain R] (R' : Type u) [comm_ring R']
 
 /-
 `local_id_is_id` and the other lemmas probably belong in
@@ -56,12 +56,12 @@ begin
     },
 end
 
-instance local_at_prime_of_id_is_id (P : ideal R') (hp_prime : P.is_prime) : 
+instance local_at_prime_of_id_is_id (P : ideal R) (hp_prime : P.is_prime) : 
   integral_domain (localization.at_prime P) :=
 begin
-  have zero_non_mem : (0 : R') ∉ P.prime_compl,
+  have zero_non_mem : (0 : R) ∉ P.prime_compl,
   { have := ideal.zero_mem P, simpa },
-  have h1 := local_id_is_id R' P.prime_compl zero_non_mem,
+  have h1 := local_id_is_id R P.prime_compl zero_non_mem,
   exact is_integral_domain.to_integral_domain (localization.at_prime P) h1,
   exact localization.of (ideal.prime_compl P),
 end
@@ -83,14 +83,14 @@ begin
   exact H (this a h2),
 end
 
-lemma zero_prime : (⊥ : ideal R').is_prime :=
+lemma zero_prime : (⊥ : ideal R).is_prime :=
 begin
   split,
   {
     intro,
-    have h1 := (ideal.eq_top_iff_one) (⊥ : ideal R') ,
+    have h1 := (ideal.eq_top_iff_one) (⊥ : ideal R) ,
     rw h1 at a,
-    have : 1 = (0 : R'), tauto,
+    have : 1 = (0 : R), tauto,
     simpa,
   },
   {
@@ -112,7 +112,7 @@ begin
   simpa only [ne.def, submodule.mk_eq_zero],
 end
 
-lemma ideal_mul_eq_zero {I J : ideal R'} : (I * J = ⊥) ↔ I = ⊥ ∨ J = ⊥ :=
+lemma ideal_mul_eq_zero {I J : ideal R} : (I * J = ⊥) ↔ I = ⊥ ∨ J = ⊥ :=
 begin
   have hJ : inhabited J, by exact submodule.inhabited J,
   have j := inhabited.default J, clear hJ,
@@ -133,4 +133,51 @@ begin
   specialize hij (i * j'),
   have := eq_zero_or_eq_zero_of_mul_eq_zero ( hij (ideal.mul_mem_mul hi hj)),
   cases this, assumption, exfalso, exact ne0 this,
+end
+
+theorem set_has_maximal_iff_noetherian {X : Type u} [add_comm_group X] [module R' X] : (∀(a : set $ submodule R' X), a.nonempty → ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I=M) ↔ is_noetherian R' X := 
+begin
+  split; intro h,
+  { split,
+    intro I,
+    let S := {J : submodule R' X | J ≤ I ∧ J.fg},
+    have h2 : S.nonempty, { use (⊥ : submodule R' X), convert submodule.fg_bot, simp },
+    rcases h S h2 with ⟨ M, ⟨hMI, ⟨Mgen, hMgen⟩⟩, max⟩,
+    rw submodule.fg_def,
+    contrapose! max,
+    have : ∃ x ∈ I, x ∉ M,
+    { 
+      have := max ↑Mgen (finset.finite_to_set Mgen), 
+      contrapose! this, 
+      rw hMgen, ext, tauto },
+    rcases this with ⟨x, hxI, hxM⟩,
+    use submodule.span R' (↑Mgen ∪ {x}), split,
+    { split,
+      { suffices : (↑Mgen : set X) ∪ {x} ⊆ I, { convert submodule.span_mono this, simp },
+        have : (↑Mgen : set X) ⊆ M, { convert submodule.subset_span, cc },
+        apply set.union_subset, { exact set.subset.trans this hMI }, { simp [hxI] } }, 
+      { rw submodule.fg_def, use (↑Mgen ∪ {x}), split, { split, apply_instance,}, refl } },
+    split, 
+    { rw ← hMgen, convert submodule.span_mono _, simp },
+    { contrapose! hxM, rw ← hxM, apply submodule.subset_span, exact (↑Mgen : set X).mem_union_right rfl,} },
+  { rintros A ⟨a, ha⟩, 
+    rw is_noetherian_iff_well_founded at h, 
+    rw order_embedding.well_founded_iff_no_descending_seq at h,
+    by_contra hyp,
+    push_neg at hyp,
+    apply h,
+    constructor,
+    have h' : ∀ (M : submodule R' X), M ∈ A → (∃ (I : submodule R' X), I ∈ A ∧ M < I),
+    {
+      intros m mina,
+      rcases hyp m mina with ⟨I, iina, mlei, mneqi⟩,
+      use I, split, exact iina, split, exact mlei, intro ilem, apply mneqi, exact le_antisymm ilem mlei,
+    },
+    have h'' : ∀ M : A, ∃ I : A, (M : submodule R' X) < I,
+    { rintros ⟨M, M_in⟩,
+      rcases h' M M_in with ⟨I, I_in, hMI⟩,
+      exact ⟨⟨I, I_in⟩, hMI⟩ },
+    let f : ℕ → A := λ n, nat.rec_on n ⟨a, ha⟩ (λ n M, classical.some (h'' M)),
+    exact order_embedding.nat_gt (coe ∘ f) (λ n, classical.some_spec (h'' $ f n)),
+  },
 end
