@@ -65,7 +65,18 @@ begin
   { intro v, split, intro t, left, exact rfl, intro t,
   suffices : path.crossed z (path.empty G v) = 0, simp [this],
   exact rfl },
-  { sorry },
+  intros, split,
+  by_cases cyc : v = p.last, intro t, left, sorry,
+  intro ev, right, have eq : z ≠ v ∧ z ≠ p_1.last, 
+  by_contradiction, have en := or_iff_not_and_not.mpr a_1, 
+  have c_1 : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + 1,
+  sorry, 
+  have odd : ¬ (path.crossed z p_1).even, refine nat.even_succ.mp _,
+  rw nat.succ_eq_add_one, rw ← c_1, exact ev, rw a at odd,
+  -- pretty sure something here is wrong, most likely the condition needed to use 
+  -- crossed_cons
+  
+  -- have z_c : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + 1, 
   -- induction p with d a s t has p hp,
   -- { suffices : G.crossed z (path.nil d) = 0, simp [this],
   --   erw finset.card_eq_zero,
