@@ -62,7 +62,9 @@ nat.even (p.crossed z) ↔ p.is_cycle ∨ (z ≠ p.head ∧ z ≠ p.last)
 :=
 begin
   apply p.induction_on,
-  { sorry },
+  { intro v, split, intro t, left, exact rfl, intro t,
+  suffices : path.crossed z (path.empty G v) = 0, simp [this],
+  exact rfl },
   { sorry },
   -- induction p with d a s t has p hp,
   -- { suffices : G.crossed z (path.nil d) = 0, simp [this],
