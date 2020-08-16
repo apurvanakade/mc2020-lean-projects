@@ -24,22 +24,21 @@ Any nontrivial localization of an integral domain results in an integral domain.
 theorem local_id_is_id [integral_domain R'] (S : submonoid R') (zero_non_mem : ((0 : R') ∉  S)) {f : localization_map S (localization S)} : 
   is_integral_domain (localization S) :=
 begin
-  split,
+  fsplit,
     {--nontrivial localization (pair ne)
-      use f.to_fun 1,
-      use f.to_fun 0,
-      intro one_eq_zero, 
-      have h2 := (localization_map.eq_iff_exists f).1 one_eq_zero,
-      cases h2 with c h2,
-      rw [zero_mul, one_mul] at h2,
-      rw ← h2 at zero_non_mem,
-      exact zero_non_mem c.property },
+      use [f.to_fun 1, f.to_fun 0],
+      contrapose! zero_non_mem,
+      -- intro one_eq_zero, 
+      have h2 := (localization_map.eq_iff_exists f).1 zero_non_mem,
+      cases h2 with c h2, 
+      convert c.property, simp at h2; simp [h2],
+    },
     { exact mul_comm },
     {--bulk
       intros x y mul_eq_zero,
       cases f.surj' x with a akey,
       cases f.surj' y with b bkey,
-      have h1 : x * (f.to_fun( a.snd)) * y * (f.to_fun(b.snd))= 0,
+      have h1 : x * (f.to_fun a.snd) * y * (f.to_fun b.snd) = 0,
       { rw [mul_assoc x, ← mul_comm y, ← mul_assoc, mul_eq_zero], simp },
       rw [akey, mul_assoc, bkey, ← f.map_mul', ← f.map_zero'] at h1,
       rw f.eq_iff_exists' at h1,

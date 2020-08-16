@@ -83,8 +83,10 @@ begin
   exact H (this a h2),
 end
 
+-- 
 lemma zero_prime : (⊥ : ideal R).is_prime :=
 begin
+
   split,
   {
     intro,
@@ -140,14 +142,13 @@ begin
   split; intro h,
   { split,
     intro I,
-    let S := {J : submodule R' X | J ≤ I ∧ J.fg},
+    let S := {J | J ≤ I ∧ J.fg},
     have h2 : S.nonempty, { use (⊥ : submodule R' X), convert submodule.fg_bot, simp },
     rcases h S h2 with ⟨ M, ⟨hMI, ⟨Mgen, hMgen⟩⟩, max⟩,
     rw submodule.fg_def,
     contrapose! max,
     have : ∃ x ∈ I, x ∉ M,
-    { 
-      have := max ↑Mgen (finset.finite_to_set Mgen), 
+    { have := max ↑Mgen (finset.finite_to_set Mgen), 
       contrapose! this, 
       rw hMgen, ext, tauto },
     rcases this with ⟨x, hxI, hxM⟩,

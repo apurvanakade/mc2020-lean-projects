@@ -53,6 +53,8 @@ begin
   tauto,
 end
 
+-- meta def ideal_simps := `[ideal.add_eq_sup, ideal.mul_le_left, ideal.mul_le_right, ideal.span_mul_span, ideal.span_le]
+
 --have to prove that the list of primes is not empty
 lemma ideal_contains_prime_product [dedekind_id R'] (I : ideal R') (gt_zero : ⊥ < I) : ∃(plist : list $ ideal R'), plist.prod ≤ I ∧ (∀(P ∈ plist), ideal.is_prime P ∧ ⊥ < P) :=
 begin
@@ -65,27 +67,18 @@ begin
   rcases set_has_maximal R' A key with ⟨ M, Mkey, maximal⟩,
   rw set.mem_set_of_eq at Mkey,
   by_cases M = ⊥,
-  {
-    have h1 := maximal I,
-    have h2 : I ∈ A, simpa,
-    rw h at h1,
-    have h3 := h1 h2,
-    have h4 : ⊥ ≤ I,
-    {cases gt_zero, exact gt_zero_left,},
-    cases gt_zero,
-    have := h3 h4,
-    rw this at *, simpa only [],
-  },
+  { contrapose! gt_zero, subst h,
+    have : I ∈ A := by simpa,
+    rw (maximal I) this bot_le, simp },
   rename h mne0,
   by_cases M.is_prime,
   {
-    have mprod : [M].prod ≤  M, rw list.prod_singleton, exact le_refl M,
+    have mprod : [M].prod ≤ M := by simp,
     rcases Mkey [M] mprod with ⟨P, pm, hp⟩,
-    have : P = M, exact list.mem_singleton.mp pm,
-    rw this at hp,
-    have h1 := hp h,
-    have : ⊥ < M, exact bot_lt_iff_ne_bot.mpr mne0,
-    exact h1 this,
+    rw list.mem_singleton at pm,
+    rw pm at hp,
+    apply hp h, 
+    rwa bot_lt_iff_ne_bot,
   },
   rename h not_prime,
   by_cases M = ⊤,
@@ -112,46 +105,19 @@ begin
   clear hr hs not_top,
   have main : rm*sm ≤ M,
   {--bashing simplifications, I think this would be a very nice simp tactic
-    rw [rme,sme,left_distrib,right_distrib,right_distrib,← add_assoc],
-    repeat {rw [ideal.add_eq_sup]},
-    have blah : ∀ (x y z : ideal R'), x ≤ z → y ≤ z → x ⊔ y ≤ z, simp only [sup_le_iff], tauto,
-    have part1 : M*M ≤ M, exact ideal.mul_le_left,
-    have part2 : ideal.span{r} * M ≤ M, exact ideal.mul_le_left,
-    have part3 : M*ideal.span{s} ≤ M, exact ideal.mul_le_right,
-    have part4' : ideal.span {r} * ideal.span {s} = (ideal.span{r*s} : ideal R'),
-    { unfold ideal.span, rw [submodule.span_mul_span, set.singleton_mul_singleton],},
-    rw part4',
-    have part4 : ideal.span{r*s} ≤ M,
-    { rw ideal.span_le, simpa,},
-    have h1 := blah (M*M) (ideal.span{r} * M ⊔  M * ideal.span {s} ⊔  ideal.span{r*s}) M part1,
-    rw [←sup_assoc,← sup_assoc] at h1,
-    apply h1,
-    clear' h1 part1,
-    have h1 := blah (ideal.span{r} * M) (M * ideal.span{s} ⊔ ideal.span{r*s}) M part2,
-    rw [←sup_assoc] at h1,
-    apply h1, clear' h1 part2,
-    exact blah (M * ideal.span{s}) (ideal.span {r*s}) M part3 part4,
-  },
+    rw [rme, sme, left_distrib, right_distrib, right_distrib],
+    -- Do any of these belong in the global simp set?
+    -- If not, can we made an `ideal_simps` or similar, so that 
+    -- `simp with ideal_simps` would close the goal.
+    simpa [ideal.add_eq_sup, ideal.span_mul_span, ideal.span_le], 
+   },
   clear not_prime mne0 hrs,
-  have key1 : rm ∉ A,
-  {
-    intro rma,
-    cases hmr,
-    have h1 := maximal rm rma hmr_left,
-    have : rm ≠ M,
-    { exfalso, apply hmr_right, rw h1, simp only [set.le_eq_subset],},
-    exact this h1,
-  },
+  have key1 : rm ∉ A, 
+  { intro rma, cases hmr, apply hmr_right, 
+    rw maximal rm rma hmr_left, simp },
   have key2 : sm ∉ A,
-  {
-    intro sma,
-    cases hms,
-    have h1 := maximal sm sma hms_left,
-    have : sm ≠ M,
-    
-    { exfalso, apply hms_right, rw h1, simp only [set.le_eq_subset],},
-    exact this h1,
-  },
+  { intro sma, cases hms, apply hms_right, 
+    rw maximal sm sma hms_left, simp },
   rw set.mem_set_of_eq at key1,
   rw set.mem_set_of_eq at key2,
   push_neg at key1,
@@ -163,7 +129,6 @@ begin
   {
     clear' hms hmr rme sme main maximal key Mkey hyp gt_zero I qprod1 qprod2 qp1 qp2 A,
     simp only [qlist],
-    
     sorry,
   },
   have lem : qlist.prod ≤ M,
