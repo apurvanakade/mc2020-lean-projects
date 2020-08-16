@@ -24,7 +24,7 @@ class dedekind_id [integral_domain R] : Prop :=
     (noetherian : is_noetherian_ring R)
     (int_closed : is_integrally_closed_domain R)
     (max_nonzero_primes : ∀ P ≠ (⊥ : ideal R), P.is_prime → P.is_maximal)
-    (not_field : ∃(I : ideal R), I ≠ ⊥ ∧ I ≠ ⊤)
+    (non_field : ∃(I : ideal R), ⊥ < I ∧ I < ⊤)
 
 
 theorem set_has_maximal_iff_noetherian {X : Type u} [add_comm_group X] [module R' X] : (∀(a : set $ submodule R' X), a.nonempty → ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I=M) ↔ is_noetherian R' X := 
@@ -42,7 +42,18 @@ begin
   sorry,
 end
 
---every nonfield has a prime ideal(?)
+lemma nonfield_has_prime (nonfield : ∃(I: ideal R), ⊥ < I ∧ I < ⊤ ) : ∃(P : ideal R), P.is_prime ∧ ⊥ < P :=
+begin
+  rcases nonfield with ⟨I, gt_bot, lt_top⟩,
+  have ne_top : I ≠ ⊤, exact ne_of_lt lt_top, 
+  rcases ideal.exists_le_maximal I ne_top with ⟨M, maximal, gei⟩,
+  have hm := ideal.is_maximal.is_prime maximal,
+  have gt_bot : ⊥ < M, exact gt_of_ge_of_gt gei gt_bot,
+  existsi M,
+  tauto,
+end
+
+--have to prove that the list of primes is not empty
 lemma ideal_contains_prime_product [dedekind_id R'] (I : ideal R') (gt_zero : ⊥ < I) : ∃(plist : list $ ideal R'), plist.prod ≤ I ∧ (∀(P ∈ plist), ideal.is_prime P ∧ ⊥ < P) :=
 begin
   letI : is_noetherian_ring R', exact dedekind_id.noetherian,
@@ -78,9 +89,15 @@ begin
   },
   rename h not_prime,
   by_cases M = ⊤,
-  { --this actually seems fairly hard to prove that in any nonfield ring, there exists a prime ideal
-    --actually, see Krull's theorem, relatively not bad application of Zorn's
-    sorry,
+  { 
+    have h1 : ∃(I : ideal R'), (⊥ < I ∧ I < ⊤), exact dedekind_id.non_field,
+    rcases nonfield_has_prime R' h1 with ⟨P, hp, gt_zero⟩,
+    have : P ≤ M, rw h, exact submodule.comap_subtype_eq_top.mp rfl,
+    have pprod : [P].prod ≤ M, rwa list.prod_singleton,
+    rcases Mkey [P] pprod with ⟨Q, qinp, h2 ⟩,
+    have h3 : Q = P, exact list.mem_singleton.mp qinp,
+    rw h3 at h2,
+    exact h2 hp gt_zero,
   },
   rename h not_top,
   unfold ideal.is_prime at not_prime,
@@ -149,6 +166,20 @@ begin
     
     sorry,
   },
-  have h1 := Mkey qlist,
+  have lem : qlist.prod ≤ M,
+  {
+    rw blah,
+    have : q1.prod * q2.prod ≤ rm * sm,
+    exact submodule.mul_le_mul qprod1 qprod2,
+    exact le_trans this main,
+  },
+  rcases Mkey qlist lem with ⟨P, pinq, hp⟩,
   repeat{sorry},
 end
+
+example (a b c d : ℕ ) (hab : a ≤ b) (hcd : c ≤ d) : (a*c ≤ b*d) :=
+begin
+  exact nat.mul_le_mul hab hcd,
+
+end
+#check le_trans

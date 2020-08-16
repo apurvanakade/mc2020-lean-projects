@@ -162,7 +162,7 @@ begin
     { contrapose! hxM, rw ← hxM, apply submodule.subset_span, exact (↑Mgen : set X).mem_union_right rfl,} },
   { rintros A ⟨a, ha⟩, 
     rw is_noetherian_iff_well_founded at h, 
-    rw order_embedding.well_founded_iff_no_descending_seq at h,
+    rw rel_embedding.well_founded_iff_no_descending_seq at h,
     by_contra hyp,
     push_neg at hyp,
     apply h,
@@ -178,6 +178,6 @@ begin
       rcases h' M M_in with ⟨I, I_in, hMI⟩,
       exact ⟨⟨I, I_in⟩, hMI⟩ },
     let f : ℕ → A := λ n, nat.rec_on n ⟨a, ha⟩ (λ n M, classical.some (h'' M)),
-    exact order_embedding.nat_gt (coe ∘ f) (λ n, classical.some_spec (h'' $ f n)),
+    exact rel_embedding.nat_gt (coe ∘ f) (λ n, classical.some_spec (h'' $ f n)),
   },
 end

@@ -115,12 +115,12 @@ class dedekind_inv [integral_domain R'] (f : localization_map (non_zero_divisors
   (inv_ideals : ∀ I : ring.fractional_ideal f, (∃ t : I, t ≠ 0) → (∃ J : ring.fractional_ideal f, I * J = 1))
 
 
-lemma dedekind_id_imp_dedekind_dvr [dedekind_id R'] : dedekind_dvr R' :=
+lemma dedekind_id_imp_dedekind_dvr (W : Type u) [integral_domain W] [dedekind_id W] : dedekind_dvr W :=
 begin
   refine {noetherian := dedekind_id.noetherian, local_dvr_nonzero_prime := _},
   intros P hp_nonzero hp_prime, letI := hp_prime,
   have f := localization.of (ideal.prime_compl P),
-  letI := local_at_prime_of_id_is_id R' P hp_prime,
+  letI := local_at_prime_of_id_is_id W P hp_prime,
   rw discrete_valuation_ring.iff_PID_with_one_nonzero_prime (localization.at_prime P),
   split, swap,
   {
@@ -217,7 +217,7 @@ begin
     { contrapose! hxM, rw ← hxM, apply submodule.subset_span, exact (↑Mgen : set X).mem_union_right rfl, } },
   { rintros A ⟨a, ha⟩, 
     rw is_noetherian_iff_well_founded at h, 
-    rw order_embedding.well_founded_iff_no_descending_seq at h,
+    rw rel_embedding.well_founded_iff_no_descending_seq at h,
     by_contra hyp,
     push_neg at hyp,
     apply h,
@@ -233,7 +233,7 @@ begin
       rcases h' M M_in with ⟨I, I_in, hMI⟩,
       exact ⟨⟨I, I_in⟩, hMI⟩ },
     let f : ℕ → A := λ n, nat.rec_on n ⟨a, ha⟩ (λ n M, classical.some (h'' M)),
-    exact order_embedding.nat_gt (coe ∘ f) (λ n, classical.some_spec (h'' $ f n)),
+    exact rel_embedding.nat_gt (coe ∘ f) (λ n, classical.some_spec (h'' $ f n)),
   },
 end
 
