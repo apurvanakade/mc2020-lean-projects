@@ -181,7 +181,6 @@ Proof of equivalence: by mathlib (i) ↔ (ii).
 (iii → ii) - Let I be an ideal. Take S to be the set of subideals of I which are finitely generated. 
 Then the maximal element of S has to equal I.
 -/
-#print acc
 --this is not in mathlib for some reason(???)
 lemma in_submodule_span_of_gen_set {X : Type u} [ring R'] [add_comm_group X] [module R' X] 
 {s : set X} {x : X} (h : x ∈ s) : x ∈ (submodule.span R' s) := 
@@ -191,7 +190,7 @@ submodule.subset_span h
     -- use ↑Mgen, split, { apply finset.finite_to_set },
     -- convert Mgenkey, apply max,
 
-theorem set_has_maximal_iff_noetherian {X : Type u} [ring R'] [add_comm_group X] [module R' X] : (∀(a : set $ submodule R' X), a.nonempty → ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I=M) ↔ is_noetherian R' X := 
+theorem set_has_maximal_iff_noetherian {X : Type u} [add_comm_group X] [module R' X] : (∀(a : set $ submodule R' X), a.nonempty → ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I=M) ↔ is_noetherian R' X := 
 begin
   split; intro h,
   { split,
@@ -212,30 +211,31 @@ begin
       { suffices : (↑Mgen : set X) ∪ {x} ⊆ I, { convert submodule.span_mono this, simp },
         have : (↑Mgen : set X) ⊆ M, { convert submodule.subset_span, cc },
         apply set.union_subset, { exact set.subset.trans this hMI }, { simp [hxI] } }, 
-      { rw submodule.fg_def, use (↑Mgen ∪ {x}), split, { split, apply_instance }, refl } },
+      { rw submodule.fg_def, use (↑Mgen ∪ {x}), split, { split, exact additive.fintype, }, refl } },
     split, 
     { rw ← hMgen, convert submodule.span_mono _, simp },
-    { contrapose! hxM, rw ← hxM, apply in_submodule_span_of_gen_set, simp } },
-
-  -- {/-
-  --     use zorn's somewhere
-  --   wf : ∀x, (∀y, y > x → P(x) → P(y)) → P(x) for all predicates P
-  --   wf.apply a : acc r a
-  --   in other words,
-  --   wf.apply a : ∀y, y > a → acc (gt) y → acc (gt) a 
-  -- -/
+    { contrapose! hxM, rw ← hxM, apply submodule.subset_span, exact (↑Mgen : set X).mem_union_right rfl, } },
   { rintros A ⟨a, ha⟩, 
     rw is_noetherian_iff_well_founded at h, 
-    have h1 := h.apply a, cases h1,
-    cases zorn.exists_maximal_of_chains_bounded _ _ with M hM,
-    use M, split, swap, intros N hN hNM, apply hM,
-  --   -- my understanding here is less than well founded
-   
-  -- },
-  sorry }
+    rw order_embedding.well_founded_iff_no_descending_seq at h,
+    by_contra hyp,
+    push_neg at hyp,
+    apply h,
+    constructor,
+    have h' : ∀ (M : submodule R' X), M ∈ A → (∃ (I : submodule R' X), I ∈ A ∧ M < I),
+    {
+      intros m mina,
+      rcases hyp m mina with ⟨I, iina, mlei, mneqi⟩,
+      use I, split, exact iina, split, exact mlei, intro ilem, apply mneqi, exact le_antisymm ilem mlei,
+    },
+    have h'' : ∀ M : A, ∃ I : A, (M : submodule R' X) < I,
+    { rintros ⟨M, M_in⟩,
+      rcases h' M M_in with ⟨I, I_in, hMI⟩,
+      exact ⟨⟨I, I_in⟩, hMI⟩ },
+    let f : ℕ → A := λ n, nat.rec_on n ⟨a, ha⟩ (λ n M, classical.some (h'' M)),
+    exact order_embedding.nat_gt (coe ∘ f) (λ n, classical.some_spec (h'' $ f n)),
+  },
 end
-
-#check zorn.exists_maximal_of_chains_bounded
 
 lemma set_has_maximal [is_noetherian_ring R'] (a : set $ ideal R') (ha : a.nonempty): ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I = M :=
 begin
@@ -246,7 +246,7 @@ end
 
 
 --ring with id is most general(?)
-lemma lt_add_nonmem [integral_domain R'] (I : ideal R') (a ∉ I) : I < I+ideal.span{a} :=
+lemma lt_add_nonmem (I : ideal R') (a ∉ I) : I < I+ideal.span{a} :=
 begin
   have blah : ∀ (x y : ideal R'), x ≤ x ⊔ y, 
   { intros x y, simp only [le_sup_left],},
@@ -286,14 +286,44 @@ namespace dedekind
 
 
 /-
-Suppose not, then the set of ideals that are not divisible by primes is nonempty, and by set_has_maximal
+Suppose not, then the set of ideals that do not contain a product of primes is nonempty, and by set_has_maximal
 must have a maximal element M.
 Since M is not prime, ∃ (r,s : R-M) such that rs ∈ M.
 Since r ∉ M, M+(r) > M, and since M is maximal, M+(r) and M+(s) must be divisible by some prime.
 Now observe that (M+(r))(M+(s)) is divisible by some primes, but M*M ⊂ M, rM ⊂ M, sM ⊂ M, and rs ⊂ M, so
 this is contained in M, but this is a contradiction.
 -/
+lemma ideal_contains_prime_product [dedekind_id R'] (I : ideal R') (gt_zero : ⊥ < I) : ∃(plist : list $ ideal R'), plist.prod ≤ I ∧ (∀(P ∈ plist), ideal.is_prime P ∧ ⊥ < P) :=
+begin
+  letI : is_noetherian_ring R', exact dedekind_id.noetherian,
+  by_contra hyp,
+  push_neg at hyp,
+  let A := {J : ideal R' | ∀(qlist : list $ ideal R'), qlist.prod ≤ J → (∃ (P : ideal R'), P ∈ qlist ∧ (P.is_prime → ¬⊥ < P))},
+  have key : A.nonempty,
+  {use I, exact hyp,},
+  rcases set_has_maximal R' A key with ⟨ M, Mkey, maximal⟩,
+  rw set.mem_set_of_eq at Mkey,
+  by_cases M = ⊥,
+  {
+    have h1 := maximal I,
+    have h2 : I ∈ A, simpa,
+    rw h at h1,
+    have h3 := h1 h2,
+    have h4 : ⊥ ≤ I,
+    {cases gt_zero, exact gt_zero_left,},
+    cases gt_zero,
+    have := h3 h4,
+    rw this at *, tauto,
+  },
+  by_cases M.is_prime,
+  {
+    have : [M].prod ≤  M, rw list.prod_singleton, exact le_refl M,
+    sorry,
+  },
+  repeat{sorry},
+end
 
+/-
 --what is this even trying to prove? chopping block 2.0
 lemma ideal_contains_prime_product [dedekind_id R'] (I : ideal R') (gt_zero : ⊥  < I ) : ∃ (plist : list $ ideal R'), plist.prod ≤ I ∧ (∀(P ∈  plist), ideal.is_prime P ∧ ⊥ < P ) :=
 begin
@@ -382,6 +412,7 @@ begin
   --exact Mkey P P_prime h2,
   sorry,
 end
+-/
 /-
 For any proper ideal I, there exists an element, γ,  in K (the field of fractions of R) such that 
 γ I ⊂ R.
