@@ -65,14 +65,16 @@ begin
   { intro v, split, intro t, left, exact rfl, intro t,
   suffices : path.crossed z (path.empty G v) = 0, simp [this],
   exact rfl },
-  intros, split,
+  intros, have vh : v = (p_1.cons e hs hv hsv).head, exact rfl,
+  have p_1e : p_1.last = (p_1.cons e hs hv hsv).last, sorry,
+  split,
   -- implies case
-  { by_cases cyc : v = (p_1.cons e hs hv hsv).last, intro t, left, sorry,
+  { by_cases cyc : v = (p_1.cons e hs hv hsv).last, intro t, left, exact cyc,
     intro ev, right, have eq : z ≠ v ∧ z ≠ p_1.last, 
     contrapose! ev, by_cases z = v,
     { have odd : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + if z = v ∨ z = p_1.head then 1 else 0,
-    apply crossed_cons, exact v, rw if_pos at odd, rw odd, rw ← nat.succ_eq_add_one, rw nat.even_succ, push_neg, rw a,
-    right, split, exact ne_of_eq_of_ne h hsv, sorry, left, exact h },
+      apply crossed_cons, exact v, rw if_pos at odd, rw odd, rw ← nat.succ_eq_add_one, rw nat.even_succ, push_neg, rw a,
+      right, split, exact ne_of_eq_of_ne h hsv, rw h, exact ne_of_ne_of_eq cyc (eq.symm p_1e), left, exact h },
     have ev1 := ev h, 
     have even : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + if z = v ∨ z = p_1.head then 1 else 0,
     apply crossed_cons, exact v, 
@@ -81,9 +83,13 @@ begin
       left, rw h1 at ev1, exact ev1, right, exact h1 },
     { rw [if_neg, add_zero] at even, rw [even, a], push_neg,
       split, rw ev1 at h1, exact (ne.symm h1).elim, intro t, exact ev1,
-    push_neg, split, exact h, exact h1 },
-    sorry, },
-  sorry,
+    push_neg, split, exact h, exact h1 }, rw [vh, p_1e] at eq, exact eq, },
+  -- impliedby case
+  { intro cond, cases cond with cyc neq, 
+  
+  
+  
+  }
 
 
   -- have c_1 : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + 1,
