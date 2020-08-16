@@ -86,8 +86,23 @@ begin
     push_neg, split, exact h, exact h1 }, rw [vh, p_1e] at eq, exact eq, },
   -- impliedby case
   { intro cond, cases cond with cyc neq, 
-  
-  
+    by_cases z = v ∨ z = p_1.head,
+    { have odd : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + if z = v ∨ z = p_1.head then 1 else 0,
+      apply crossed_cons, exact v, rw if_pos at odd, rw [odd, ← nat.succ_eq_add_one, nat.even_succ, a], push_neg,
+      split, refine ne.elim _, rw path.is_cycle at cyc, rw [p_1e, ← cyc, ← vh], symmetry, exact hsv,
+      intro zneq, cases h with y z,
+      { rw [y, p_1e], exact cyc },
+      { exfalso, exact zneq z },
+      exact h, },
+    { have even : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + if z = v ∨ z = p_1.head then 1 else 0,
+      apply crossed_cons, exact v, rw [if_neg, add_zero] at even, rw [even, a],
+      { right, push_neg at h, cases h with h1 h2, split, exact h2, 
+        rw path.is_cycle at cyc, rw [p_1e, ← cyc], rw vh at h1, exact h1,},
+      exact h, },
+    by_cases z = p_1.head,
+    { have odd : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + if z = v ∨ z = p_1.head then 1 else 0,
+      apply crossed_cons, exact v, rw if_pos at odd, rw [odd, ← nat.succ_eq_add_one, nat.even_succ, a], push_neg,
+      
   
   }
 
