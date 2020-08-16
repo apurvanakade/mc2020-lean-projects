@@ -1,6 +1,20 @@
 # Eigenvalues and Diagonalization
 
+## August 15, 2020
+Completely new proof using the theorems from https://github.com/abentkamp/spectral/blob/master/src/eigenvector.lean
 
+There we have the theorem :
+`lemma generalized_eigenvector_span` 
+which states that the generalized eigenvectors of a linear operator `f` span the entire space and hence provide a basis. 
+
+from here to get the spectral theorem we need to prove two things. let `M` be a normal matrix and let `f` be the corresponding linear operator.
+
+1. two eigenvectors `v` and `w` corresponding different eigenvalues are orthogonal. the proof of this is here: https://math.stackexchange.com/questions/778946/prove-that-if-a-is-normal-then-eigenvectors-corresponding-to-distinct-eigenva
+2. prove proposition 7.2 here which says that every generalized eigenvector of a normal operator is an eigenvector https://www.maa.org/sites/default/files/pdf/awards/Axler-Ford-1996.pdf
+3. putting all these (unit) eigenvectors together into a matrix gives us a unitary matrix `U`
+4. we can rephrase the above conclusions as saying that `U ^* M U` is upper triangular
+5. we need to show that `U^* M U` is also normal
+6. finally, here is a proof that every upper triangular normal matrix is diagonal https://math.stackexchange.com/questions/1762563/if-a-is-normal-and-upper-triangular-then-it-is-diagonal
 
 ## July 15, 2020
 
