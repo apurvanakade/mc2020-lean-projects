@@ -66,13 +66,30 @@ begin
   suffices : path.crossed z (path.empty G v) = 0, simp [this],
   exact rfl },
   intros, split,
-  by_cases cyc : v = p.last, intro t, left, sorry,
-  intro ev, right, have eq : z ≠ v ∧ z ≠ p_1.last, 
-  by_contradiction, have en := or_iff_not_and_not.mpr a_1, 
-  have c_1 : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + 1,
-  sorry, 
-  have odd : ¬ (path.crossed z p_1).even, refine nat.even_succ.mp _,
-  rw nat.succ_eq_add_one, rw ← c_1, exact ev, rw a at odd,
+  -- implies case
+  { by_cases cyc : v = p.last, intro t, left, sorry,
+    intro ev, right, have eq : z ≠ v ∧ z ≠ p_1.last, 
+    contrapose! ev, by_cases z = v,
+    { have odd : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + if z = v ∨ z = p_1.head then 1 else 0,
+    apply crossed_cons, exact v, rw if_pos at odd, rw odd, rw ← nat.succ_eq_add_one, rw nat.even_succ, push_neg, rw a,
+    right, split, exact ne_of_eq_of_ne h hsv, rw ← h at cyc, sorry, left, exact h },
+    have ev1 := ev h, 
+    have even : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + if z = v ∨ z = p_1.head then 1 else 0,
+    apply crossed_cons, exact v, 
+    by_cases h1 : z = p_1.head, 
+    { rw if_pos at even, rw [even, ← nat.succ_eq_add_one, nat.even_succ], push_neg, rw a,
+      left, rw h1 at ev1, exact ev1, right, exact h1 },
+    { rw [if_neg, add_zero] at even, rw [even, a], push_neg,
+      split, rw ev1 at h1, exact (ne.symm h1).elim, intro t, exact ev1,
+    push_neg, split, exact h, exact h1 },
+    sorry, },
+  sorry,
+
+
+  -- have c_1 : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + 1,
+  -- sorry, 
+  -- have odd : ¬ (path.crossed z p_1).even, refine nat.even_succ.mp _,
+  -- rw nat.succ_eq_add_one, rw ← c_1, exact ev, rw a at odd,
   -- pretty sure something here is wrong, most likely the condition needed to use 
   -- crossed_cons
   
