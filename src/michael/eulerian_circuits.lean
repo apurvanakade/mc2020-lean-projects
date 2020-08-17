@@ -101,9 +101,15 @@ begin
       exact h, },
     by_cases z = p_1.head,
     { have odd : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + if z = v ∨ z = p_1.head then 1 else 0,
-      apply crossed_cons, exact v, rw if_pos at odd, rw [odd, ← nat.succ_eq_add_one, nat.even_succ, a], push_neg, sorry, sorry },
-      sorry,
-  },
+      apply crossed_cons, exact v, rw if_pos at odd, rw [odd, ← nat.succ_eq_add_one, nat.even_succ, a], push_neg, 
+      { split, cases neq with h1 h2, rw [h, ← p_1e] at h2, exact h2, intro h1, exfalso, exact h1 h },
+      right, exact h },
+    { have even : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + if z = v ∨ z = p_1.head then 1 else 0,
+      apply crossed_cons, exact v, rw [if_neg, add_zero] at even, rw [even, a],  
+      right, split, exact h, cases neq with h1 h2, rw ← p_1e at h2, exact h2,
+      push_neg, cases neq with h1 h2, rw ← vh at h1, split, exact h1, exact h
+      }
+  }
 
 
   -- have c_1 : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + 1,
