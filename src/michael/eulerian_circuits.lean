@@ -66,7 +66,8 @@ begin
   suffices : path.crossed z (path.empty G v) = 0, simp [this],
   exact rfl },
   intros, have vh : v = (p_1.cons e hs hv hsv).head, exact rfl,
-  have p_1e : p_1.last = (p_1.cons e hs hv hsv).last, sorry,
+  have p_1e : p_1.last = (p_1.cons e hs hv hsv).last, symmetry,
+  apply path.cons_last,
   split,
   -- implies case
   { by_cases cyc : v = (p_1.cons e hs hv hsv).last, intro t, left, exact cyc,
