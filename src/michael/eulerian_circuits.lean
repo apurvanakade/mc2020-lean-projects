@@ -83,12 +83,31 @@ begin
       left, rw h1 at ev1, exact ev1, right, exact h1 },
     { rw [if_neg, add_zero] at even, rw [even, a], push_neg,
       split, rw ev1 at h1, exact (ne.symm h1).elim, intro t, exact ev1,
-    push_neg, split, exact h, exact h1 }, rw [vh, p_1e] at eq, exact eq, },
+    push_neg, split, exact h, exact h1 }, rw [vh, p_1e] at eq, exact eq },
   -- impliedby case
   { intro cond, cases cond with cyc neq, 
-  
-  
-  
+    by_cases z = v ∨ z = p_1.head,
+    { have odd : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + if z = v ∨ z = p_1.head then 1 else 0,
+      apply crossed_cons, exact v, rw if_pos at odd, rw [odd, ← nat.succ_eq_add_one, nat.even_succ, a], push_neg,
+      split, refine ne.elim _, rw path.is_cycle at cyc, rw [p_1e, ← cyc, ← vh], symmetry, exact hsv,
+      intro zneq, cases h with y z,
+      { rw [y, p_1e], exact cyc },
+      { exfalso, exact zneq z },
+      exact h, },
+    { have even : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + if z = v ∨ z = p_1.head then 1 else 0,
+      apply crossed_cons, exact v, rw [if_neg, add_zero] at even, rw [even, a],
+      { right, push_neg at h, cases h with h1 h2, split, exact h2, 
+        rw path.is_cycle at cyc, rw [p_1e, ← cyc], rw vh at h1, exact h1,},
+      exact h, },
+    by_cases z = p_1.head,
+    { have odd : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + if z = v ∨ z = p_1.head then 1 else 0,
+      apply crossed_cons, exact v, rw if_pos at odd, rw [odd, ← nat.succ_eq_add_one, nat.even_succ, a], push_neg, 
+      { split, cases neq with h1 h2, rw [h, ← p_1e] at h2, exact h2, intro h1, exfalso, exact h1 h },
+      right, exact h },
+    { have even : path.crossed z (p_1.cons e hs hv hsv) = path.crossed z p_1 + if z = v ∨ z = p_1.head then 1 else 0,
+      apply crossed_cons, exact v, rw [if_neg, add_zero] at even, rw [even, a],  
+      right, split, exact h, cases neq with h1 h2, rw ← p_1e at h2, exact h2,
+      push_neg, cases neq with h1 h2, rw ← vh at h1, split, exact h1, exact h }
   }
 
 
@@ -122,6 +141,9 @@ G.degree v = p.crossed v :=
 begin
   unfold degree, unfold path.crossed,
   cases hp with h_trail h_all,
+  rw neighbor_finset_eq_filter,
+  rw list.countp_eq_length_filter,
+  
   sorry,
   -- intro h,
   -- induction p with d a s t has p hp, 
@@ -206,7 +228,7 @@ begin
   -- intro h, simp only [mem_insert, card_eq_zero, mem_singleton] at h, 
   -- I think we need induction on the number of edges?
   split, rw empty_card_edges, have zero_neq : G.card_edges ≠ 0, contrapose! hG0,
-  rw ← card_edges_eq_zero_iff, exact hG0, omega, exact G,
+  rw ← card_edges_eq_zero_iff, exact hG0, omega,
   intro x, intro y, exfalso, finish,
 end
 -- iff the number of vertices of odd degree is 0 or 2
