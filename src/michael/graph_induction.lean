@@ -42,7 +42,7 @@ begin
   apply hKH, exact hk _ hHk _ K_card,
 end
 -- for every graph, there exists an edge so that P (G.erase e) → P G
-
+ 
 def erase (e : G.E) : simple_graph V := 
 { adj := λ u v, if u ∈ e ∧ v ∈ e then false else G.adj u v,
   sym := by { unfold symmetric, intros, simp_rw [edge_symm, and_comm], cc } }

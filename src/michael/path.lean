@@ -78,6 +78,11 @@ def length : ℕ := p.tail.length
 @[simp] lemma vertices_tail : p.vertices.tail = p.tail := by simp [path.vertices] 
 @[simp] lemma vertices_length : p.vertices.length = p.length + 1 := by simp [path.vertices] 
 
+lemma vertices_ne_nil : p.vertices ≠ list.nil := by simp [vertices]
+@[simp] lemma last_eq_vertices_last : p.last = p.vertices.last p.vertices_ne_nil := 
+by { dsimp [last, vertices], split_ifs with h; simp [h] }
+
+
 #check list.nth_eq_some
 lemma head_ne_tail_head  (h : p.tail ≠ list.nil) : p.head ≠ p.tail.head :=
 begin
@@ -129,6 +134,7 @@ lemma vertex_mem_empty {u v : V} : u ∈ (empty G v) ↔ u = v :=
 by { unfold has_mem.mem vertex_mem, simp [empty, vertices], apply or_false }
 
 /-- p.cons e hp hs is the path extending `p` by edge `e`. -/
+@[simps]
 def cons {s : V} (e : G.E) (hp : p.head ∈ e) (hs : s ∈ e) (hsp : s ≠ p.head) : G.path :=
 { head := s,
   tail := p.vertices, 
@@ -155,6 +161,11 @@ by { unfold cons length, simp [vertices] }
 @[simp] lemma cons_vertices {s : V} (hd : G.E) (hp : p.head ∈ hd) (hs : s ∈ hd) (hsp : s ≠ p.head) : 
   (p.cons hd hp hs hsp).vertices = list.cons s p.vertices :=
 by { dsimp [vertices, cons], simp }
+
+-- @[simp]
+lemma cons_last {s : V} (hd : G.E) (hp : p.head ∈ hd) (hs : s ∈ hd) (hsp : s ≠ p.head)
+: last (p.cons hd hp hs hsp) = p.last :=
+by { simp only [cons_vertices, last_eq_vertices_last], apply list.last_cons } 
 
 lemma edges_eq_nil_iff : p.edges = list.nil ↔ p.tail = list.nil :=
 by rw [← list.length_eq_zero, p.length_eq, list.length_eq_zero]
@@ -222,7 +233,7 @@ begin
   intro, apply P_inductive, apply hk, simp at a, omega,
 end
 
-
+-- @[no_lint]
 lemma consecutive_vertex_ne {n} (h : n < p.length) : 
 p.vertices.nth_le n (by { simp, linarith }) ≠ 
 p.vertices.nth_le (n+1) (by { simp, linarith }) :=
